@@ -23,6 +23,8 @@ docker compose run --rm e2e npx playwright test --project iphone  # one device: 
 ```
 Host ports default to 3000 (dev) and 8090 (app); 5173 and 8080 are used by other projects on this machine; override them with `PICTO_DEV_PORT` and `PICTO_PORT`. When checking that a port serves Picto, look for `<title>Picto</title>`: other Vite apps also serve `/src/main.jsx`. `node_modules` is a named volume; the `dev` stage of the `Dockerfile` pre-creates it owned by uid 1000 so files written to the bind mount (such as `package-lock.json`) stay user-owned.
 
+**`overrides.minimatch` in `package.json`** forces `minimatch` ^11.0.8 under ESLint 10 to fix GHSA-g3hv-75wg-m249 (DoS, dev-only; ESLint still asks for ^10). Remove it once ESLint depends on a patched `minimatch`, then check `npm audit`. After changing it, confirm ESLint's file matching with `npx eslint --print-config <file>`. npm doesn't run `core-js`'s postinstall (a funding banner, via jsPDF → canvg); that's intended.
+
 ## Architecture
 
 - **No backend.** Search calls the public, CORS-enabled ARASAAC API directly from the browser (`src/hooks/useArasaacSearch.js`). The API answers **404 with `[]`** when nothing matches, which is treated as "no results". Image URLs are built from the pictogram id (`static.arasaac.org/pictograms/{id}/{id}_{res}.png`).
