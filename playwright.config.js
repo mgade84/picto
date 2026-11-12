@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// Run via `docker compose run --rm e2e`, which serves the production build
-// as http://picto-web. Drag and drop can't be exercised in jsdom, so it is
+// Run via `docker compose run --rm e2e`, which reaches the production build
+// as http://localhost (it shares the app container's network). Drag and drop can't be exercised in jsdom, so it is
 // tested here in a real browser.
 //
 // Picto is mainly used on phones: phone.spec.js runs on an iPhone profile

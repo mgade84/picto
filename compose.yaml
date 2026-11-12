@@ -23,20 +23,19 @@ services:
       target: prod
     ports:
       - "${PICTO_PORT:-8090}:80"
-    networks:
-      default:
-        # Chrome forces HTTPS for the hostname "app" (.app is an HSTS-preloaded
-        # TLD), so the e2e browser reaches this service by this alias instead.
-        aliases: [picto-web]
 
   e2e:
     # Must match the @playwright/test version pinned in package.json.
     image: mcr.microsoft.com/playwright:v1.65.0-noble
     working_dir: /app
     user: "1000:1000"
+    # Share the app container's network, so the browser reaches Picto as
+    # http://localhost: a secure context in every browser, like production's
+    # HTTPS (needed for the storage estimate, persistent storage, Web Share).
+    network_mode: "service:app"
     environment:
       HOME: /tmp
-      E2E_BASE_URL: http://picto-web
+      E2E_BASE_URL: http://localhost
     volumes:
       - .:/app
       - node_modules:/app/node_modules

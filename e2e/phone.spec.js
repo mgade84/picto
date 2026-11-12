@@ -181,3 +181,59 @@ test("adds a photo from Wikimedia Commons", async ({ page }) => {
     await page.goto("/about");
     await expect(page.getByRole("list", { name: "Photos from Wikimedia Commons" })).toHaveText("Ann Example, CC BY 4.0");
 });
+
+test("Settings shows how much storage is used", async ({ page }) => {
+    await openSeededSequence(page);
+    await page.goto("/settings");
+    await expect(page.getByRole("heading", { name: "Storage" })).toBeVisible();
+    await expect(page.getByTestId("storage-sequences")).toHaveText(/^Sequences and settings: (<\s1|[\d.]+)\skB of about 5\sMB$/); // \s: sizes use non-breaking spaces
+    // The estimate exists only in secure contexts: HTTPS in production,
+    // http://localhost here.
+    expect(await page.evaluate(() => window.isSecureContext)).toBe(true);
+    await expect(page.getByTestId("storage-images")).toHaveText(/^Own images: (<\s)?[\d.]+\s[kMG]B of about [\d.]+\s[MG]B$/);
+    // A bar under each line, visible even for a small amount.
+    for (const name of [/^Sequences and settings:/, /^Own images:/]) {
+        await expect(page.getByRole("progressbar", { name })).toBeVisible();
+    }
+    const bar = page.getByTestId("storage-sequences-bar");
+    const fill = await bar.locator(".MuiLinearProgress-bar").boundingBox();
+    const track = await bar.boundingBox();
+    expect(fill.x + fill.width - track.x).toBeGreaterThan(0); // a sliver shows
+});
+
+test("warns when the browser's storage is really full", async ({ page }) => {
+    await openSeededSequence(page);
+    // Fill localStorage up to the browser's real limit with filler.
+    const filled = await page.evaluate(() => {
+        const chunk = "x".repeat(256 * 1024);
+        let n = 0;
+        try {
+            for (;;) localStorage.setItem(`filler-${n++}`, chunk);
+        } catch {
+            for (let size = 128 * 1024; size >= 16; size /= 2) {
+                try {
+                    for (;;) localStorage.setItem(`filler-${n++}`, "x".repeat(size));
+                } catch {
+                    // this size no longer fits; try a smaller one
+                }
+            }
+        }
+        return n;
+    });
+    expect(filled).toBeGreaterThan(5);
+
+    // An edit that makes the saved sequence longer can't be stored any more.
+    await page.getByRole("button", { name: "Edit label of eat" }).tap();
+    await page.getByRole("textbox", { name: "Label" }).fill("eat a really big breakfast with the whole family");
+    await page.getByRole("textbox", { name: "Label" }).press("Enter");
+    await expect(page.getByRole("alert")).toContainText("Your changes couldn't be saved");
+
+    // Freeing space and editing again saves normally.
+    await page.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith("filler-")).forEach(k => localStorage.removeItem(k)));
+    await page.getByRole("alert").getByRole("button", { name: "Close" }).tap();
+    await page.getByRole("button", { name: /^Edit label of eat a really/ }).tap();
+    await page.getByRole("textbox", { name: "Label" }).fill("breakfast");
+    await page.getByRole("textbox", { name: "Label" }).press("Enter");
+    await expect.poll(() => storedTexts(page)).toEqual(["wake up", "breakfast", "school"]);
+    await expect(page.getByRole("alert")).toHaveCount(0);
+});

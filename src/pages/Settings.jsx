@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import ConfirmDialog from "../components/ConfirmDialog";
 import PictogramBase from "../components/PictogramBase";
+import StorageInfo from "../components/StorageInfo";
 import { useCollections } from "../context/collectionsContext";
 import { BIN_SIDES, usePreferences } from "../context/preferencesContext";
 import { useLanguage, useT } from "../i18n/languageContext";
@@ -89,6 +90,14 @@ export default function Settings() {
 
             <LanguagePicker />
             <BinSidePicker />
+
+            <Typography variant="h5" component="h2" gutterBottom>
+                {t("storage.title")}
+            </Typography>
+            <StorageInfo />
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 3 }}>
+                {t("storage.hint")}
+            </Typography>
 
             <Typography variant="h5" component="h2" gutterBottom>
                 {t("settings.danger")}

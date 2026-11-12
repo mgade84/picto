@@ -1,5 +1,6 @@
 import { Route, Routes } from "react-router";
 import Drawer from "./components/Drawer";
+import StorageWarning from "./components/StorageWarning";
 import TopBar from "./components/TopBar";
 import CollectionsProvider from "./context/CollectionsProvider";
 import DrawerProvider from "./context/DrawerProvider";
@@ -23,6 +24,7 @@ export default function App() {
                             <TopBar />
                             <Drawer />
                         </DrawerProvider>
+                        <StorageWarning />
                         <Routes>
                             <Route path={Pages.home} element={<CollectionList />} />
                             <Route path={Pages.sequence} element={<Sequence />} />

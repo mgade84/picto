@@ -809,3 +809,91 @@ describe("about page", () => {
         expect(privacy).toHaveTextContent(/Picto bruger ikke cookies/);
     });
 });
+
+describe("storage", () => {
+    it("warns when a change can't be saved, until closed", async () => {
+        seed([MORNING]);
+        const user = userEvent.setup();
+        renderApp("/sequence/m");
+        expect(screen.queryByText(/couldn't be saved/)).not.toBeInTheDocument();
+
+        vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+            throw new DOMException("full", "QuotaExceededError");
+        });
+        await user.click(screen.getByRole("button", { name: "Edit label of eat" }));
+        await user.keyboard("{Control>}a{/Control}breakfast{Enter}");
+
+        const warning = await screen.findByRole("alert");
+        expect(warning).toHaveTextContent("Your changes couldn't be saved. The browser's storage is full or blocked");
+        await user.click(within(warning).getByRole("button", { name: "Close" }));
+        await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+    });
+
+    it("shows how much storage is used in Settings", async () => {
+        seed([MORNING, EVENING]);
+        Object.defineProperty(navigator, "storage", {
+            configurable: true,
+            value: { estimate: async () => ({ usage: 2_300_000, quota: 1_200_000_000 }) },
+        });
+        try {
+            renderApp("/settings");
+            expect(screen.getByRole("heading", { name: "Storage" })).toBeInTheDocument();
+            // Two short sequences take well under 1 kB of the ~5 MB.
+            expect(screen.getByTestId("storage-sequences")).toHaveTextContent("Sequences and settings: < 1 kB of about 5 MB");
+            expect(await screen.findByTestId("storage-images")).toHaveTextContent("Own images: 2.3 MB of about 1.2 GB");
+        } finally {
+            delete navigator.storage;
+        }
+    });
+
+    it("shows a bar for each storage type, coloured by how full it is", async () => {
+        seed([MORNING]);
+        const bars = async usage => {
+            Object.defineProperty(navigator, "storage", {
+                configurable: true,
+                value: { estimate: async () => ({ usage, quota: 1_000_000_000 }) },
+            });
+            const view = renderApp("/settings");
+            const images = await screen.findByRole("progressbar", { name: /^Own images:/ });
+            const sequences = screen.getByRole("progressbar", { name: /^Sequences and settings:/ });
+            const result = { images, sequences };
+            return { ...result, done: () => view.unmount() };
+        };
+        try {
+            // A tiny but real amount still shows a sliver, not an empty bar.
+            let r = await bars(20_000_000);
+            expect(Number(r.sequences.getAttribute("aria-valuenow"))).toBeGreaterThanOrEqual(1);
+            expect(r.sequences.getAttribute("aria-valuetext")).toMatch(/^Sequences and settings: <\s1\skB of about 5\sMB$/);
+            expect(Number(r.images.getAttribute("aria-valuenow"))).toBe(2);
+            expect(r.images.className).toMatch(/colorPrimary/);
+            r.done();
+
+            r = await bars(850_000_000); // 85 %: getting full
+            expect(Number(r.images.getAttribute("aria-valuenow"))).toBe(85);
+            expect(r.images.className).toMatch(/colorWarning/);
+            r.done();
+
+            r = await bars(970_000_000); // 97 %: nearly full
+            expect(r.images.className).toMatch(/colorError/);
+            r.done();
+        } finally {
+            delete navigator.storage;
+        }
+    });
+
+    it("formats sizes in Danish", async () => {
+        seed([MORNING]);
+        Object.defineProperty(navigator, "storage", {
+            configurable: true,
+            value: { estimate: async () => ({ usage: 2_300_000, quota: 1_200_000_000 }) },
+        });
+        try {
+            renderApp("/settings", { language: null });
+            expect(screen.getByRole("heading", { name: "Lagerplads" })).toBeInTheDocument();
+            expect(screen.getByTestId("storage-sequences")).toHaveTextContent("Sekvenser og indstillinger: < 1 kB af ca. 5 MB");
+            expect(await screen.findByTestId("storage-images")).toHaveTextContent("Egne billeder: 2,3 MB af ca. 1,2 GB");
+        } finally {
+            delete navigator.storage;
+        }
+    });
+});
