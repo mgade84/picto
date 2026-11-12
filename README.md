@@ -1,4 +1,4 @@
-<img src="src/logo.svg" alt="Picto logo" width="96" align="right">
+<img src="src/logo.svg" alt="Picto logo" width="48" align="right">
 
 # Picto
 
