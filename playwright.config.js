@@ -21,9 +21,9 @@ export default defineConfig({
             name: "desktop",
             // Tall enough that all three seeded cards are on screen.
             use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 1000 } },
-            testMatch: /(drag|print)\.spec/,
+            testMatch: /(drag|print|crop)\.spec/,
         },
-        { name: "android", use: { ...devices["Pixel 7"] }, testMatch: /(touch|phone)\.spec/ },
-        { name: "iphone", use: { ...devices["iPhone SE (3rd gen)"] }, testMatch: /phone\.spec/ },
+        { name: "android", use: { ...devices["Pixel 7"] }, testMatch: /(touch|phone|crop)\.spec/ },
+        { name: "iphone", use: { ...devices["iPhone SE (3rd gen)"] }, testMatch: /(phone|crop)\.spec/ },
     ],
 });

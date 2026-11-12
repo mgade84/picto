@@ -7,7 +7,12 @@ Visual schedules are widely used with children, and with adults, who benefit fro
 ## What it does
 
 - **Keep several sequences.** The home screen, *My Picto collections*, lists all your sequences ("Morning", "School day", "Bedtime", ...). Each row shows a preview of the first pictograms and how many there are. Tap a sequence to open it, use the pencil to rename it, or use the bin to delete it (after a confirmation). **New sequence** creates one and opens it straight away.
-- **Search for pictograms.** Inside a sequence, tap **+**, type a word (for example "brush teeth") and pick from the matching pictograms. Pictograms come from [ARASAAC](https://arasaac.org), a large free library of pictograms made for augmentative and alternative communication (AAC).
+- **Add pictures.** Inside a sequence, tap **+**. The dialog has three tabs:
+  - **Piktogrammer** (pictograms): type a word (for example "brush teeth") and pick from the matching pictograms from [ARASAAC](https://arasaac.org), a large free library of pictograms made for augmentative and alternative communication (AAC).
+  - **Fotos** (photos): freely licensed photos and drawings from [Wikimedia Commons](https://commons.wikimedia.org). Danish search words work. Each photo's author and licence are kept and listed on the About page, as some licences require. Commons has no "safe search" filter, so an adult should do the searching. Locking editing hides adding altogether.
+  - **Eget billede** (own image): take a photo or pick one from the phone's library. Choose what goes on the pictogram: drag the photo to move it inside the square frame, and zoom with two fingers (pinch), the mouse wheel or the zoom slider. Or switch off "Beskær til kvadrat" (crop to a square) to keep the whole image. Then give it a label. The photo is shrunk to at most 800 px and stored **only on this device** (in the browser's IndexedDB); it is never uploaded. Add Picto to the Home Screen, especially on iPhone: Safari may otherwise delete a website's stored data after 7 days without use.
+
+  For any other picture on the web, long-press it, choose "Save image", and add it from the photo library.
 - **Build the sequence.** Each chosen pictogram is added to the bottom as a card with its image and label.
   - **Reorder** by dragging a card to its new place. With a mouse, just drag. On a phone or tablet, press and hold briefly, then drag; a quick swipe still scrolls the page.
   - **Delete** by dragging a card onto the bin that appears at the side of the screen while dragging: on the left by default, or on the right if you prefer (*Settings → Bin position*). An **Undo** button shows for a few seconds afterwards.
@@ -62,7 +67,9 @@ Picto is a fully static single-page app (React, MUI, React Router, built with Vi
 ```
 Browser ──search──▶ api.arasaac.org/v1/pictograms/{nb|en}/search/{text}
         ──images──▶ static.arasaac.org/pictograms/{id}/{id}_{300|500}.png
+        ──photos──▶ commons.wikimedia.org/w/api.php (search), upload.wikimedia.org (images)
         ──state───▶ localStorage["collections"], ["language"], ["editLocked"], ["preferences"]
+        ──own images─▶ IndexedDB "picto" / "images"
 ```
 
 The production image is just the built files served by nginx, with a fallback to `index.html` so client-side routes such as `/about` work when loaded directly.

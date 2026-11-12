@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ButtonBase, CardMedia, InputBase, Paper, Typography } from "@mui/material";
 import { useT } from "../i18n/languageContext";
+import useImageSrc from "../images/useImageSrc";
 
 // Keeps pointer and key events inside the label from reaching the card,
 // whose drag-and-drop listeners would otherwise start a drag (e.g. on Space).
@@ -78,6 +79,7 @@ function Label({ text, onRelabel }) {
  */
 export default function Pictogram({ data, onRelabel, dragging, overlay, sx, ...cardProps }) {
     const { img, text } = data;
+    const src = useImageSrc(img);
 
     return (
         <Paper
@@ -101,7 +103,7 @@ export default function Pictogram({ data, onRelabel, dragging, overlay, sx, ...c
         >
             <CardMedia
                 component="img"
-                image={img}
+                image={src}
                 alt={text}
                 draggable={false}
                 sx={{ height: 160, objectFit: "contain", pointerEvents: "none" }}

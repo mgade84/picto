@@ -66,3 +66,61 @@ export async function centerOf(locator) {
 export function bin(page) {
     return page.locator('[aria-label="Drop here to delete"]');
 }
+
+/**
+ * A real landscape PNG (1200x600: red left half, blue right half), made by
+ * screenshotting a page, for testing the own-image flow end to end.
+ */
+export async function landscapePhoto(browser) {
+    // deviceScaleFactor 1: phone profiles would otherwise render it at 2-3x.
+    const page = await browser.newPage({ viewport: { width: 1200, height: 600 }, deviceScaleFactor: 1 });
+    await page.setContent(
+        '<body style="margin:0;display:flex"><div style="width:600px;height:600px;background:#d00"></div><div style="width:600px;height:600px;background:#00d"></div></body>'
+    );
+    const buffer = await page.screenshot({ type: "png" });
+    await page.close();
+    return { name: "holiday.png", mimeType: "image/png", buffer };
+}
+
+// Commons API answer with one photo, plus the thumbnail it points to.
+export async function stubCommons(page) {
+    await page.route("https://commons.wikimedia.org/w/api.php**", route =>
+        route.fulfill({
+            headers: { "access-control-allow-origin": "*" },
+            json: {
+                query: {
+                    pages: {
+                        7: {
+                            pageid: 7,
+                            index: 1,
+                            title: "File:Red ball.png",
+                            imageinfo: [
+                                {
+                                    thumburl: "https://upload.wikimedia.org/thumb/r/rb/Red_ball.png/960px-Red_ball.png?utm_source=commons",
+                                    descriptionurl: "https://commons.wikimedia.org/wiki/File:Red_ball.png",
+                                    extmetadata: {
+                                        Artist: { value: "<b>Ann Example</b>" },
+                                        LicenseShortName: { value: "CC BY 4.0" },
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                },
+            },
+        })
+    );
+    await page.route("https://upload.wikimedia.org/**", route =>
+        route.fulfill({
+            headers: { "access-control-allow-origin": "*" },
+            contentType: "image/svg+xml",
+            body: '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><circle cx="150" cy="150" r="120" fill="red"/></svg>',
+        })
+    );
+}
+
+/** naturalWidth x naturalHeight of an <img>, once it has loaded. */
+export async function imageSize(locator) {
+    await expect.poll(() => locator.evaluate(img => img.complete && img.naturalWidth > 0)).toBe(true);
+    return locator.evaluate(img => [img.naturalWidth, img.naturalHeight]);
+}

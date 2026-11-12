@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { openSeededSequence, storedTexts } from "./helpers";
+import { imageSize, landscapePhoto, openSeededSequence, storedTexts, stubCommons } from "./helpers";
 
 // Runs on the phone projects (iPhone SE (3rd gen) on WebKit, Pixel 7 on
 // Chromium): every screen must fit the width without sideways scrolling, and
@@ -142,4 +142,39 @@ test("the back arrow and title sit in the same place on the sequence and print p
         return [back.x, back.y, back.width, title.x, title.y].map(Math.round);
     };
     expect(await header("/sequence/s1/print")).toEqual(await header("/sequence/s1"));
+});
+
+test("adds an own photo and keeps it after a reload", async ({ page, browser }) => {
+    await openSeededSequence(page);
+    await page.getByRole("button", { name: "Add pictogram" }).tap();
+    await page.getByRole("tab", { name: "Own image" }).tap();
+    await page.getByTestId("own-image-input").setInputFiles(await landscapePhoto(browser));
+    await expect(page.getByTestId("own-image-frame").locator("img")).toBeVisible();
+
+    await page.getByRole("textbox", { name: "Label" }).fill("holiday");
+    await page.getByRole("button", { name: "Add", exact: true }).tap();
+    await expect.poll(() => storedTexts(page)).toEqual(["wake up", "eat", "school", "holiday"]);
+
+    // Still there after a reload (IndexedDB), on the card and in the list.
+    await page.reload();
+    expect(await imageSize(page.getByRole("img", { name: "holiday" }))).toEqual([600, 600]);
+    await page.goto("/");
+    await expect(page.getByText("4 pictograms")).toBeVisible();
+});
+
+test("adds a photo from Wikimedia Commons", async ({ page }) => {
+    await stubCommons(page);
+    await openSeededSequence(page);
+
+    await page.getByRole("button", { name: "Add pictogram" }).tap();
+    await page.getByRole("tab", { name: "Photos" }).tap();
+    await page.getByRole("textbox", { name: "Search pictograms" }).fill("ball");
+    await page.getByRole("button", { name: "Search", exact: true }).tap();
+    await page.getByRole("button", { name: "Add Red ball" }).tap();
+
+    await expect.poll(() => storedTexts(page)).toEqual(["wake up", "eat", "school", "ball"]);
+    expect((await imageSize(page.getByRole("img", { name: "ball" })))[0]).toBeGreaterThan(0);
+
+    await page.goto("/about");
+    await expect(page.getByRole("list", { name: "Photos from Wikimedia Commons" })).toHaveText("Ann Example, CC BY 4.0");
 });

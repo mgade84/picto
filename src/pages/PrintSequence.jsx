@@ -28,6 +28,7 @@ import PictogramBase from "../components/PictogramBase";
 import { useCollections } from "../context/collectionsContext";
 import { PRINT_DIRECTIONS, PRINT_ORIENTATIONS, usePreferences } from "../context/preferencesContext";
 import { useT } from "../i18n/languageContext";
+import useImageSrc from "../images/useImageSrc";
 import { PAGE_MARGIN, TITLE_HEIGHT, maxPerLine, pageSize, sheetLayout } from "../print/layout";
 import { savePdf } from "../print/makePdf";
 import { Pages } from "../SiteMap";
@@ -75,6 +76,17 @@ function PrintStyles({ orientation }) {
                     "*": { printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" },
                 },
             }}
+        />
+    );
+}
+
+function PrintImage({ img, alt }) {
+    return (
+        <Box
+            component="img"
+            src={useImageSrc(img)}
+            alt={alt}
+            sx={{ width: "100%", flex: 1, minHeight: 0, objectFit: "contain" }}
         />
     );
 }
@@ -139,12 +151,7 @@ function Sheet({ sequence, layout, cells, pageIndex }) {
                             overflow: "hidden",
                         }}
                     >
-                        <Box
-                            component="img"
-                            src={p.img}
-                            alt={p.text}
-                            sx={{ width: "100%", flex: 1, minHeight: 0, objectFit: "contain" }}
-                        />
+                        <PrintImage img={p.img} alt={p.text} />
                         <Box sx={{ fontSize: mm(labelSize), lineHeight: 1.2, mt: "1mm", maxWidth: "100%", ...ellipsis }}>
                             {p.text}
                         </Box>

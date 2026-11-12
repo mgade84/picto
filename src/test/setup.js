@@ -1,4 +1,5 @@
 import "@testing-library/jest-dom/vitest";
+import "fake-indexeddb/auto";
 import { afterEach, beforeEach, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
 
@@ -9,6 +10,13 @@ beforeEach(() => {
         throw new Error(`console.error: ${args.join(" ")}`);
     });
 });
+
+// jsdom has no object URLs; own images are shown through them.
+if (!URL.createObjectURL) {
+    let n = 0;
+    URL.createObjectURL = () => `blob:test/${++n}`;
+    URL.revokeObjectURL = () => {};
+}
 
 afterEach(() => {
     cleanup();

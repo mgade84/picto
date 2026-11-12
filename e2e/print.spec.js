@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { inflateSync } from "node:zlib";
 import { expect, test } from "@playwright/test";
-import { openSeededSequence } from "./helpers";
+import { imageSize, landscapePhoto, openSeededSequence, stubCommons } from "./helpers";
 
 // Inflates every Flate stream so text drawn in compressed content streams
 // can be searched too.
@@ -184,4 +184,35 @@ test("a vertical sequence reads top to bottom in the preview and the PDF", async
     const file = testInfo.outputPath("vertical.pdf");
     await (await downloading).saveAs(file);
     expect(inspectPdf(await readFile(file)).pages).toBe(3);
+});
+
+test("own photos and Commons photos appear in the print preview and the PDF", async ({ page, browser }, testInfo) => {
+    await stubCommons(page);
+    await page.goto("/sequence/s1");
+    await page.getByRole("button", { name: "Add pictogram" }).click();
+    await page.getByRole("tab", { name: "Own image" }).click();
+    await page.getByTestId("own-image-input").setInputFiles(await landscapePhoto(browser));
+    await page.getByRole("textbox", { name: "Label" }).fill("holiday");
+    await page.getByRole("button", { name: "Add", exact: true }).click();
+    await expect(page.getByRole("dialog")).toBeHidden();
+
+    await page.getByRole("button", { name: "Add pictogram" }).click();
+    await page.getByRole("tab", { name: "Photos" }).click();
+    await page.getByRole("textbox", { name: "Search pictograms" }).fill("ball");
+    await page.keyboard.press("Enter");
+    await page.getByRole("button", { name: "Add Red ball" }).click();
+    await expect(page.getByRole("dialog")).toBeHidden();
+
+    await page.goto("/sequence/s1/print");
+    const sheet = page.getByRole("img", { name: "Page 1 of 1" });
+    expect(await imageSize(sheet.getByRole("img", { name: "holiday" }))).toEqual([600, 600]);
+    expect((await imageSize(sheet.getByRole("img", { name: "ball" })))[0]).toBeGreaterThan(0);
+
+    const downloading = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Save PDF" }).click();
+    const file = testInfo.outputPath("mixed.pdf");
+    await (await downloading).saveAs(file);
+    const pdf = inspectPdf(await readFile(file));
+    expect(pdf.images).toBe(5); // 3 pictograms + own photo + Commons photo
+    expect(pdf.text).toContain("(holiday)");
 });

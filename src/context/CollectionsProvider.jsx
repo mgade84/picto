@@ -1,7 +1,8 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { arrayMove } from "@dnd-kit/sortable";
 import { v4 as uuid } from "uuid";
 import useLocalStorage from "../hooks/useLocalStorage";
+import { deleteUnusedImages } from "../images/imageStore";
 import { useT } from "../i18n/languageContext";
 import { CollectionsContext, LEGACY_KEY, STORAGE_KEY } from "./collectionsContext";
 
@@ -51,7 +52,13 @@ export default function CollectionsProvider({ children }) {
             addPictogram: (id, icon) =>
                 updatePictograms(id, list => [
                     ...list,
-                    { id: uuid(), img: icon.img, text: icon.text },
+                    {
+                        id: uuid(),
+                        img: icon.img,
+                        text: icon.text,
+                        // Photos from Wikimedia Commons keep their author and licence.
+                        ...(icon.credit && { credit: icon.credit }),
+                    },
                 ]),
             relabelPictogram: (id, pictoId, text) =>
                 updatePictograms(id, list =>
@@ -75,6 +82,14 @@ export default function CollectionsProvider({ children }) {
                 }),
         };
     }, [setState]);
+
+    // Once per app start, delete own images no pictogram uses any more. Not
+    // on every change, so a deleted pictogram can still be undone.
+    useEffect(() => {
+        const used = (state.collections ?? []).flatMap(c => (c.pictograms ?? []).map(p => p.img));
+        deleteUnusedImages(used).catch(() => {});
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const value = useMemo(
         () => ({ collections: state.collections ?? [], ...actions }),

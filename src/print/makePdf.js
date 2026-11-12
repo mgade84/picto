@@ -1,19 +1,31 @@
+import { isLocal, loadImage as loadStoredImage } from "../images/imageStore";
 import { sheetLayout } from "./layout";
 
 const MM_TO_PT = 72 / 25.4;
 const CELL_PADDING = 2;
 const IMAGE_TIMEOUT_MS = 15000;
 
-// Loads an image as a PNG data URL. Goes through fetch + a blob URL (ARASAAC
-// sends CORS headers) so the canvas is never tainted, and through a canvas so
-// any format the browser can show, including SVG from old data, works.
+// The image's bytes: from IndexedDB for the user's own images, otherwise
+// fetched with CORS (ARASAAC and Wikimedia Commons send CORS headers).
+async function imageBlob(url, signal) {
+    if (isLocal(url)) {
+        const blob = await loadStoredImage(url);
+        if (!blob) throw new Error("image missing");
+        return blob;
+    }
+    const res = await fetch(url, { mode: "cors", signal });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.blob();
+}
+
+// Loads an image as a PNG data URL. Goes through a blob URL so the canvas is
+// never tainted, and through a canvas so any format the browser can show,
+// including SVG from old data, works.
 async function loadImage(url) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), IMAGE_TIMEOUT_MS);
     try {
-        const res = await fetch(url, { mode: "cors", signal: controller.signal });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const blobUrl = URL.createObjectURL(await res.blob());
+        const blobUrl = URL.createObjectURL(await imageBlob(url, controller.signal));
         try {
             const img = await new Promise((resolve, reject) => {
                 const el = new Image();

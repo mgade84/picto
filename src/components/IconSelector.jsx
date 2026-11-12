@@ -9,15 +9,15 @@ export default function IconSelector({ icons, onSelectIcon }) {
                 <Paper sx={{ m: "6px" }} key={icon.id}>
                     <Button
                         onClick={() => onSelectIcon(icon)}
-                        title={icon.text}
-                        aria-label={t("add.icon", { text: icon.text })}
+                        title={icon.title ?? icon.text}
+                        aria-label={t("add.icon", { text: icon.title ?? icon.text })}
                     >
                         <Box
                             component="img"
                             src={icon.thumb}
                             alt=""
                             loading="lazy"
-                            sx={{ width: 64, height: 64, m: "5px" }}
+                            sx={{ width: 64, height: 64, m: "5px", objectFit: "contain" }}
                         />
                     </Button>
                 </Paper>

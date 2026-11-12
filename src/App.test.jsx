@@ -7,6 +7,12 @@ import { LEGACY_KEY, STORAGE_KEY } from "./context/collectionsContext";
 import { LANGUAGE_KEY } from "./i18n/languageContext";
 import { LOCK_KEY } from "./context/editLockContext";
 import { PREFERENCES_KEY } from "./context/preferencesContext";
+import { isLocal, loadImage } from "./images/imageStore";
+
+// jsdom can't decode or draw images; the real processing is covered by e2e.
+vi.mock("./images/processImage", () => ({
+    processImage: vi.fn(async (file, { crop }) => new Blob([`processed:${crop ? "crop" : "whole"}`], { type: "image/jpeg" })),
+}));
 
 const DOG = { _id: 7202, keywords: [{ keyword: "dog" }] };
 const CAT = { _id: 2517, keywords: [{ keyword: "cat" }] };
@@ -614,3 +620,168 @@ describe("printing", () => {
     });
 });
 
+
+describe("own images", () => {
+    const openOwnTab = async user => {
+        await user.click(screen.getByRole("button", { name: "Add pictogram" }));
+        await user.click(screen.getByRole("tab", { name: "Own image" }));
+    };
+
+    it("adds a photo from the camera or library, stored on the device", async () => {
+        seed([{ ...EVENING, pictograms: [] }]);
+        const user = userEvent.setup();
+        renderApp("/sequence/e");
+        await openOwnTab(user);
+
+        expect(screen.getByText("The image is stored on this device only.")).toBeInTheDocument();
+        const input = screen.getByTestId("own-image-input");
+        expect(input).toHaveAttribute("accept", "image/*");
+        // No `capture`: phones then offer both the camera and the library.
+        expect(input).not.toHaveAttribute("capture");
+
+        await user.upload(input, new File(["raw"], "photo.jpg", { type: "image/jpeg" }));
+        // Cropping is on by default, with a frame to drag and a zoom slider.
+        expect(screen.getByRole("switch", { name: "Crop to a square" })).toBeChecked();
+        expect(screen.getByRole("group", { name: "Choose the crop" })).toBeInTheDocument();
+        expect(screen.getByText(/Pinch or use the slider to zoom/)).toBeInTheDocument();
+        const zoom = screen.getByRole("slider", { name: "Zoom" });
+        expect(zoom).toHaveValue("1");
+        zoom.focus();
+        await user.keyboard("{ArrowRight}{ArrowRight}");
+        expect(Number(zoom.value)).toBeGreaterThan(1);
+
+        const add = screen.getByRole("button", { name: "Add" });
+        expect(add).toBeDisabled(); // needs a label
+        await user.type(screen.getByRole("textbox", { name: "Label" }), "my room");
+        await user.click(add);
+
+        await waitFor(() => expect(stored()[0].pictograms).toHaveLength(1));
+        const [p] = stored()[0].pictograms;
+        expect(p.text).toBe("my room");
+        expect(isLocal(p.img)).toBe(true);
+        // The image itself is in IndexedDB, not localStorage.
+        expect(await (await loadImage(p.img)).text()).toBe("processed:crop");
+        await waitFor(() => expect(screen.getByRole("img", { name: "my room" })).toHaveAttribute("src", expect.stringMatching(/^blob:/)));
+    });
+
+    it("can keep the whole image instead of cropping", async () => {
+        seed([{ ...EVENING, pictograms: [] }]);
+        const user = userEvent.setup();
+        renderApp("/sequence/e");
+        await openOwnTab(user);
+
+        await user.upload(screen.getByTestId("own-image-input"), new File(["raw"], "photo.jpg", { type: "image/jpeg" }));
+        await user.click(screen.getByRole("switch", { name: "Crop to a square" }));
+        // The whole image is shown instead of the crop frame, with no zoom.
+        expect(screen.getByRole("img", { name: "Preview" })).toBeInTheDocument();
+        expect(screen.queryByRole("slider", { name: "Zoom" })).not.toBeInTheDocument();
+        await user.type(screen.getByRole("textbox", { name: "Label" }), "whole");
+        await user.click(screen.getByRole("button", { name: "Add" }));
+
+        await waitFor(() => expect(stored()[0].pictograms).toHaveLength(1));
+        expect(await (await loadImage(stored()[0].pictograms[0].img)).text()).toBe("processed:whole");
+    });
+
+    it("is labelled in Danish", async () => {
+        seed([{ ...EVENING, pictograms: [] }]);
+        const user = userEvent.setup();
+        renderApp("/sequence/e", { language: null });
+        await user.click(screen.getByRole("button", { name: "Tilføj piktogram" }));
+        expect(screen.getByRole("tab", { name: "Piktogrammer" })).toHaveAttribute("aria-selected", "true");
+        await user.click(screen.getByRole("tab", { name: "Eget billede" }));
+        expect(screen.getByRole("button", { name: "Tag foto eller vælg billede" })).toBeInTheDocument();
+        expect(screen.getByText("Billedet gemmes kun på denne enhed.")).toBeInTheDocument();
+    });
+});
+
+describe("photos from Wikimedia Commons", () => {
+    const commonsResponse = {
+        query: {
+            pages: {
+                11: {
+                    pageid: 11,
+                    index: 2,
+                    title: "File:Brown dog.jpg",
+                    imageinfo: [
+                        {
+                            thumburl: "https://upload.wikimedia.org/thumb/a/ab/Brown_dog.jpg/960px-Brown_dog.jpg?utm_source=commons",
+                            descriptionurl: "https://commons.wikimedia.org/wiki/File:Brown_dog.jpg",
+                            extmetadata: {
+                                Artist: { value: '<a href="//commons.wikimedia.org/wiki/User:Jane">Jane Doe</a>' },
+                                LicenseShortName: { value: "CC BY-SA 4.0" },
+                            },
+                        },
+                    ],
+                },
+                10: {
+                    pageid: 10,
+                    index: 1,
+                    title: "File:Puppy.png",
+                    imageinfo: [
+                        {
+                            thumburl: "https://upload.wikimedia.org/c/cd/Puppy.png", // small original: no width part
+                            descriptionurl: "https://commons.wikimedia.org/wiki/File:Puppy.png",
+                            extmetadata: { LicenseShortName: { value: "CC0" } },
+                        },
+                    ],
+                },
+            },
+        },
+    };
+
+    it("searches Commons and adds a photo with its credit, shown on the About page", async () => {
+        seed([{ ...EVENING, pictograms: [] }]);
+        const fetch = mockFetch(() => ({ body: commonsResponse }));
+        const user = userEvent.setup();
+        renderApp("/sequence/e");
+
+        await user.click(screen.getByRole("button", { name: "Add pictogram" }));
+        await user.click(screen.getByRole("tab", { name: "Photos" }));
+        expect(screen.getByText(/Wikimedia Commons/)).toBeInTheDocument();
+        await user.type(screen.getByRole("textbox", { name: "Search pictograms" }), "hund{Enter}");
+
+        const url = new URL(String(fetch.mock.calls[0][0]));
+        expect(url.origin + url.pathname).toBe("https://commons.wikimedia.org/w/api.php");
+        expect(url.searchParams.get("origin")).toBe("*");
+        expect(url.searchParams.get("gsrsearch")).toBe("hund filetype:bitmap|drawing");
+        expect(url.searchParams.get("iiurlwidth")).toBe("960"); // a standard Commons width
+
+        // Results in Commons' order (index), named after the file.
+        const results = await screen.findAllByRole("button", { name: /^Add / });
+        expect(results.map(b => b.getAttribute("aria-label"))).toEqual(["Add Puppy", "Add Brown dog"]);
+        // The grid uses the standard 330px thumbnail; small originals as they are.
+        const thumbs = results.map(b => b.querySelector("img").getAttribute("src"));
+        expect(thumbs).toEqual([
+            "https://upload.wikimedia.org/c/cd/Puppy.png",
+            "https://upload.wikimedia.org/thumb/a/ab/Brown_dog.jpg/330px-Brown_dog.jpg?utm_source=commons",
+        ]);
+
+        await user.click(screen.getByRole("button", { name: "Add Brown dog" }));
+        await waitFor(() => expect(stored()[0].pictograms).toHaveLength(1));
+        expect(stored()[0].pictograms[0]).toMatchObject({
+            text: "hund", // the search word, editable afterwards
+            img: "https://upload.wikimedia.org/thumb/a/ab/Brown_dog.jpg/960px-Brown_dog.jpg?utm_source=commons",
+            credit: {
+                author: "Jane Doe",
+                license: "CC BY-SA 4.0",
+                url: "https://commons.wikimedia.org/wiki/File:Brown_dog.jpg",
+            },
+        });
+
+        await dialogClosed();
+        await user.click(screen.getByRole("button", { name: "Open menu" }));
+        await user.click(await screen.findByRole("link", { name: "About" }));
+        const credits = await screen.findByRole("list", { name: "Photos from Wikimedia Commons" });
+        expect(credits).toHaveTextContent("Jane Doe, CC BY-SA 4.0");
+        expect(within(credits).getByRole("link", { name: "Jane Doe" })).toHaveAttribute(
+            "href",
+            "https://commons.wikimedia.org/wiki/File:Brown_dog.jpg"
+        );
+    });
+
+    it("shows no credits section when no Commons photos are used", async () => {
+        seed([MORNING]);
+        renderApp("/about");
+        expect(screen.queryByRole("list", { name: "Photos from Wikimedia Commons" })).not.toBeInTheDocument();
+    });
+});

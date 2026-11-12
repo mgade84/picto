@@ -8,6 +8,8 @@ import {
     IconButton,
     InputBase,
     Paper,
+    Tab,
+    Tabs,
     Typography,
     useMediaQuery,
     useTheme,
@@ -16,6 +18,8 @@ import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import useArasaacSearch from "../hooks/useArasaacSearch";
+import useCommonsSearch from "../images/useCommonsSearch";
+import OwnImageForm from "./OwnImageForm";
 import { useLanguage, useT } from "../i18n/languageContext";
 import { SEARCH_LOCALES } from "../i18n/strings";
 import IconSelector from "./IconSelector";
@@ -51,35 +55,33 @@ function SearchForm({ onSearch }) {
     );
 }
 
-// Lives inside the Dialog, which unmounts its children when closed, so the
-// query resets every time the dialog is reopened.
-function SearchContent({ onSelect }) {
+function Results({ loading, error, icons, query, onSelect, caption }) {
+    const t = useT();
+    if (loading) return <CircularProgress sx={{ m: 2 }} aria-label={t("add.searching")} />;
+    if (error) return <Typography color="error">{t("add.failed", { error })}</Typography>;
+    if (icons?.length === 0) return <Typography>{t("add.none", { query })}</Typography>;
+    if (!icons) return null;
+    return (
+        <>
+            {caption && (
+                <Typography variant="caption" color="text.secondary" component="p" sx={{ mb: 0.5 }}>
+                    {caption}
+                </Typography>
+            )}
+            <IconSelector icons={icons} onSelectIcon={onSelect} />
+        </>
+    );
+}
+
+// These live inside the Dialog, which unmounts its children when closed, so
+// queries reset every time the dialog is reopened.
+function PictogramSearch({ onSelect }) {
     const t = useT();
     const { language } = useLanguage();
     const locales = SEARCH_LOCALES[language];
     const [query, setQuery] = useState("");
     const { loading, icons, locale, error } = useArasaacSearch(query, locales);
     const hint = t("add.hint");
-
-    let results = null;
-    if (loading) {
-        results = <CircularProgress sx={{ m: 2 }} aria-label={t("add.searching")} />;
-    } else if (error) {
-        results = <Typography color="error">{t("add.failed", { error })}</Typography>;
-    } else if (icons?.length === 0) {
-        results = <Typography>{t("add.none", { query })}</Typography>;
-    } else if (icons) {
-        results = (
-            <>
-                {locales.length > 1 && (
-                    <Typography variant="caption" color="text.secondary" component="p" sx={{ mb: 0.5 }}>
-                        {t("add.resultsIn", { language: t(`language.${locale}`) })}
-                    </Typography>
-                )}
-                <IconSelector icons={icons} onSelectIcon={onSelect} />
-            </>
-        );
-    }
 
     return (
         <>
@@ -89,14 +91,42 @@ function SearchContent({ onSelect }) {
                     {hint}
                 </Typography>
             )}
-            <Box sx={{ p: 1, textAlign: "center" }}>{results}</Box>
+            <Box sx={{ p: 1, textAlign: "center" }}>
+                <Results
+                    {...{ loading, error, icons, query, onSelect }}
+                    caption={locales.length > 1 && locale && t("add.resultsIn", { language: t(`language.${locale}`) })}
+                />
+            </Box>
         </>
     );
 }
 
+function PhotoSearch({ onSelect }) {
+    const t = useT();
+    const [query, setQuery] = useState("");
+    const { loading, icons, error } = useCommonsSearch(query);
+
+    return (
+        <>
+            <SearchForm onSearch={setQuery} />
+            {!icons && (
+                <Typography variant="body2" color="text.secondary" sx={{ mx: 2.5, mt: 1 }}>
+                    {t("add.photosHint")}
+                </Typography>
+            )}
+            <Box sx={{ p: 1, textAlign: "center" }}>
+                <Results {...{ loading, error, icons, query, onSelect }} />
+            </Box>
+        </>
+    );
+}
+
+const SOURCES = ["pictograms", "photos", "own"];
+
 export default function PictoAdder({ onAdd }) {
     const t = useT();
     const [open, setOpen] = useState(false);
+    const [source, setSource] = useState("pictograms");
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -127,7 +157,19 @@ export default function PictoAdder({ onAdd }) {
                         <CloseIcon />
                     </IconButton>
                 </DialogTitle>
-                <SearchContent onSelect={handleSelect} />
+                <Tabs
+                    value={source}
+                    onChange={(e, v) => setSource(v)}
+                    variant="fullWidth"
+                    sx={{ borderBottom: 1, borderColor: "divider", mb: 1 }}
+                >
+                    {SOURCES.map(s => (
+                        <Tab key={s} value={s} label={t(`add.tab.${s}`)} />
+                    ))}
+                </Tabs>
+                {source === "pictograms" && <PictogramSearch onSelect={handleSelect} />}
+                {source === "photos" && <PhotoSearch onSelect={handleSelect} />}
+                {source === "own" && <OwnImageForm onAdd={handleSelect} />}
             </Dialog>
         </>
     );

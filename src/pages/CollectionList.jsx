@@ -24,7 +24,12 @@ import NameDialog from "../components/NameDialog";
 import { nextSequenceName, useCollections } from "../context/collectionsContext";
 import { useEditLock } from "../context/editLockContext";
 import { useT } from "../i18n/languageContext";
+import useImageSrc from "../images/useImageSrc";
 import { printPath, sequencePath } from "../SiteMap";
+
+function Thumb({ img, sx }) {
+    return <Avatar variant="rounded" src={useImageSrc(img)} alt="" sx={sx} />;
+}
 
 // Up to three overlapping thumbnails of the first pictograms; one on phones
 // so the name gets the room.
@@ -42,11 +47,9 @@ function Preview({ pictograms }) {
                 </Avatar>
             ) : (
                 thumbs.map((p, i) => (
-                    <Avatar
+                    <Thumb
                         key={p.id}
-                        variant="rounded"
-                        src={p.img}
-                        alt=""
+                        img={p.img}
                         sx={{
                             width: size,
                             height: size,
