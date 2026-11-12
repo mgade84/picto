@@ -22,7 +22,7 @@ services:
       context: .
       target: prod
     ports:
-      - "${PICTO_PORT:-8090}:8080"
+      - "${PICTO_PORT:-8090}:80"
     networks:
       default:
         # Chrome forces HTTPS for the hostname "app" (.app is an HSTS-preloaded
@@ -36,7 +36,7 @@ services:
     user: "1000:1000"
     environment:
       HOME: /tmp
-      E2E_BASE_URL: http://picto-web:8080
+      E2E_BASE_URL: http://picto-web
     volumes:
       - .:/app
       - node_modules:/app/node_modules

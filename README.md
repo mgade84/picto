@@ -78,7 +78,9 @@ Browser ──search──▶ api.arasaac.org/v1/pictograms/{nb|en}/search/{text
         ──own images─▶ IndexedDB "picto" / "images"
 ```
 
-The production image is just the built files served by nginx, with a fallback to `index.html` so client-side routes such as `/about` work when loaded directly.
+The production image is just the built files served by nginx on port 80 (with a healthcheck), with a fallback to `index.html` so client-side routes such as `/about` work when loaded directly.
+
+Putting it online is handled outside this repo: a separate, private deployment builds the Dockerfile's `prod` stage and runs it behind a reverse proxy. Keep that stage working, and keep server names, domains and logins out of this repo.
 
 ## Pictogram licence
 

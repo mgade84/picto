@@ -21,7 +21,10 @@ test("serves the app compressed, with caching that suits each file", async ({ re
     expect(route.headers()["cache-control"]).toBe("no-cache");
     expect(await route.text()).toContain('<div id="root">');
 
-    expect((await request.get("/manifest.json")).headers()["cache-control"]).toBe("no-cache");
+    const manifest = await request.get("/manifest.webmanifest");
+    expect(manifest.headers()["cache-control"]).toBe("no-cache");
+    expect(manifest.headers()["content-type"]).toBe("application/manifest+json");
+    expect((await manifest.json()).short_name).toBe("Picto");
     expect((await request.get("/logo192.png")).headers()["cache-control"]).toBe("public, max-age=86400");
 });
 
@@ -34,7 +37,7 @@ test("sends a Content Security Policy on every response", async ({ request }) =>
     expect(csp).toContain("frame-ancestors 'none'");
 
     const script = (await html.text()).match(/\/assets\/index-[^"]+\.js/)[0];
-    for (const path of [script, "/manifest.json", "/logo192.png", "/sequence/x/print", "/assets/missing.js"]) {
+    for (const path of [script, "/manifest.webmanifest", "/logo192.png", "/sequence/x/print", "/assets/missing.js"]) {
         expect((await request.get(path)).headers()["content-security-policy"], path).toBe(csp);
     }
 });
