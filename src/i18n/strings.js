@@ -146,6 +146,22 @@ const da = {
     "about.attribution.license": "Creative Commons BY-NC-SA",
     "about.attribution.after": "-licens.",
     "about.photos": "Fotos fra Wikimedia Commons",
+    "about.logo": "Picto-logo",
+
+    "privacy.title": "Databeskyttelse og privatliv",
+    "privacy.onDevice.title": "Dine data bliver på enheden.",
+    "privacy.onDevice.text":
+        "Dine sekvenser, dine egne billeder og dine indstillinger gemmes kun i browseren på denne enhed. De sendes aldrig til en server – heller ikke til den server, der leverer Picto – og Picto har ingen brugerkonti.",
+    "privacy.noTracking.title": "Ingen sporing.",
+    "privacy.noTracking.text": "Picto bruger ikke cookies, analyseværktøjer eller reklamer.",
+    "privacy.searches.title": "Søgninger.",
+    "privacy.searches.text":
+        "Når du søger, sendes kun søgeordet til ARASAAC (piktogrammer) eller Wikimedia Commons (fotos), og billederne hentes fra deres servere. Som ved ethvert besøg på en hjemmeside kan de se enhedens IP-adresse. Intet om dine sekvenser eller dine egne billeder sendes med.",
+    "privacy.printing.title": "Udskrift og PDF",
+    "privacy.printing.text": "laves på enheden. En PDF deles kun, hvis du selv vælger at dele den.",
+    "privacy.deleting.title": "Sletning.",
+    "privacy.deleting.text":
+        "»Ryd« under Indstillinger sletter alle sekvenser. Sletter du webstedets data i browseren, forsvinder alt, også dine egne billeder.",
     "about.createdBy": "Lavet af Mikkel Gade",
     "about.version": "Version {version}",
 };
@@ -282,6 +298,22 @@ const en = {
     "about.attribution.license": "Creative Commons BY-NC-SA",
     "about.attribution.after": " license.",
     "about.photos": "Photos from Wikimedia Commons",
+    "about.logo": "Picto logo",
+
+    "privacy.title": "Privacy and data protection",
+    "privacy.onDevice.title": "Your data stays on this device.",
+    "privacy.onDevice.text":
+        "Your sequences, your own images and your settings are stored only in the browser on this device. They are never sent to a server – not even to the one that delivers Picto – and Picto has no user accounts.",
+    "privacy.noTracking.title": "No tracking.",
+    "privacy.noTracking.text": "Picto uses no cookies, analytics or ads.",
+    "privacy.searches.title": "Searches.",
+    "privacy.searches.text":
+        "When you search, only the search word is sent to ARASAAC (pictograms) or Wikimedia Commons (photos), and the pictures are loaded from their servers. As with any visit to a website, they can see the device's IP address. Nothing about your sequences or your own images is sent.",
+    "privacy.printing.title": "Printing and PDFs",
+    "privacy.printing.text": "are made on the device. A PDF is only shared if you choose to share it.",
+    "privacy.deleting.title": "Deleting.",
+    "privacy.deleting.text":
+        "“Clear” in Settings deletes all sequences. Clearing this site's data in the browser removes everything, including your own images.",
     "about.createdBy": "Created by Mikkel Gade",
     "about.version": "Version {version}",
 };

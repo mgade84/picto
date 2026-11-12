@@ -785,3 +785,27 @@ describe("photos from Wikimedia Commons", () => {
         expect(screen.queryByRole("list", { name: "Photos from Wikimedia Commons" })).not.toBeInTheDocument();
     });
 });
+
+describe("about page", () => {
+    it("shows the logo at the top and the privacy statement", () => {
+        renderApp("/about");
+        const logo = screen.getByRole("img", { name: "Picto logo" });
+        expect(logo.getAttribute("src")).toMatch(/svg/);
+        // Logo sits in the same header row as the page title.
+        expect(logo.parentElement).toContainElement(screen.getByRole("heading", { level: 1, name: "About Picto" }));
+
+        const privacy = screen.getByRole("region", { name: "Privacy and data protection" });
+        expect(privacy).toHaveTextContent("Your data stays on this device.");
+        expect(privacy).toHaveTextContent(/never sent to a server/);
+        expect(privacy).toHaveTextContent(/no cookies, analytics or ads/);
+        expect(privacy).toHaveTextContent(/only the search word is sent to ARASAAC .* or Wikimedia Commons/);
+    });
+
+    it("is in Danish", () => {
+        renderApp("/about", { language: null });
+        expect(screen.getByRole("img", { name: "Picto-logo" })).toBeInTheDocument();
+        const privacy = screen.getByRole("region", { name: "Databeskyttelse og privatliv" });
+        expect(privacy).toHaveTextContent("Dine data bliver på enheden.");
+        expect(privacy).toHaveTextContent(/Picto bruger ikke cookies/);
+    });
+});

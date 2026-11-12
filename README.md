@@ -33,6 +33,10 @@ Visual schedules are widely used with children, and with adults, who benefit fro
 
 Picto is made for **phones first** (iPhone and Android), and works on tablets and computers too. Sequences are a single column of large cards that can be held up for a child to see, every button is at least 44 px (Apple's minimum touch target), and no screen scrolls sideways, even at 375 px. It can be added to the Home Screen and opens full screen with its own name and icon.
 
+## Privacy
+
+Everything you make in Picto (sequences, your own images, settings) is stored only in the browser on your device. It is never sent to a server, including the one that hosts Picto. There are no accounts, cookies, analytics or ads. When you search, only the search word goes to ARASAAC or Wikimedia Commons, and their pictures are loaded from their servers, so those services see the device's IP address, as with any website. PDFs are made on the device. The About page has the full statement in Danish and English, and `e2e/privacy.spec.js` checks it against the requests the app actually makes.
+
 ## Running it
 
 All tooling runs in Docker; nothing needs to be installed on the host apart from Docker itself.
