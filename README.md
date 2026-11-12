@@ -35,7 +35,7 @@ Picto is made for **phones first** (iPhone and Android), and works on tablets an
 
 ## Privacy
 
-Everything you make in Picto (sequences, your own images, settings) is stored only in the browser on your device. It is never sent to a server, including the one that hosts Picto. There are no accounts, cookies, analytics or ads. When you search, only the search word goes to ARASAAC or Wikimedia Commons, and their pictures are loaded from their servers, so those services see the device's IP address, as with any website. PDFs are made on the device. The About page has the full statement in Danish and English, and `e2e/privacy.spec.js` checks it against the requests the app actually makes.
+Everything you make in Picto (sequences, your own images, settings) is stored only in the browser on your device. It is never sent to a server, including the one that hosts Picto. There are no accounts, cookies, analytics or ads. When you search, only the search word goes to ARASAAC or Wikimedia Commons, and their pictures are loaded from their servers, so those services see the device's IP address, as with any website. PDFs are made on the device. The About page has the full statement in Danish and English, and `e2e/privacy.spec.js` checks it against the requests the app actually makes. The production server also sends a strict Content Security Policy (`security-headers.conf`): the browser may only run Picto's own scripts and only load pictures from ARASAAC, Wikimedia Commons and the device itself.
 
 ## Running it
 
