@@ -1,3 +1,5 @@
+<img src="src/logo.svg" alt="Picto logo" width="96" align="right">
+
 # Picto
 
 Picto is a small web app for quickly building **visual schedules**: short, ordered sequences of pictograms that show someone what is going to happen, step by step. A typical morning routine might be *wake up → toilet → brush teeth → get dressed → breakfast → school*.
@@ -28,7 +30,7 @@ Visual schedules are widely used with children, and with adults, who benefit fro
   Swipe left/right (or use the arrows) to see each page. Print and PDF include every page, numbered when there's more than one. These print settings are remembered on the device. **Udskriv** opens the device's print dialog. **Gem PDF** makes a PDF file in the app: on a phone it opens the share sheet (save to Files, AirDrop, Messages, print ...), and on a computer it downloads. The PDF looks the same on every device, which matters on iPhones, where the print dialog has no "Save as PDF".
 - **Lock editing.** The padlock at the top right switches editing off and on. While locked, sequences can be opened and viewed, but nothing can be dragged, deleted, renamed, relabelled or added. Handy when handing the tablet to a child. The lock is remembered across reloads.
 - **Danish or English.** The interface is in Danish by default; switch to English under *Settings → Sprog / Language*. ARASAAC has no Danish keywords, so in Danish mode a search tries Norwegian (Bokmål) first, which matches many Danish words ("hund", "skole", "børste"), and falls back to English. The search dialog says which language the results came from, and you can rewrite the label in Danish afterwards.
-- **It's remembered.** Everything is saved in the browser (`localStorage`), so your sequences are still there the next time you open Picto on the same device. There are no accounts and no server-side storage, and nothing leaves the device except the search terms sent to ARASAAC.
+- **It's remembered.** Everything is saved in the browser on the device (sequences and settings in `localStorage`, own photos in IndexedDB), so it's all still there the next time you open Picto on the same device. There are no accounts and no server-side storage, and nothing leaves the device except search words sent to ARASAAC or Wikimedia Commons (see [Privacy](#privacy)).
 - **Start over.** *Settings → Clear* deletes all sequences.
 
 Picto is made for **phones first** (iPhone and Android), and works on tablets and computers too. Sequences are a single column of large cards that can be held up for a child to see, every button is at least 44 px (Apple's minimum touch target), and no screen scrolls sideways, even at 375 px. It can be added to the Home Screen and opens full screen with its own name and icon.
