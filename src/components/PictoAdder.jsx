@@ -16,9 +16,12 @@ import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import useArasaacSearch from "../hooks/useArasaacSearch";
+import { useLanguage, useT } from "../i18n/languageContext";
+import { SEARCH_LOCALES } from "../i18n/strings";
 import IconSelector from "./IconSelector";
 
 function SearchForm({ onSearch }) {
+    const t = useT();
     const [value, setValue] = useState("");
 
     const handleSubmit = e => {
@@ -38,10 +41,10 @@ function SearchForm({ onSearch }) {
                 value={value}
                 onChange={e => setValue(e.target.value)}
                 sx={{ ml: 1, flex: 1 }}
-                placeholder="Search pictograms…"
-                inputProps={{ "aria-label": "Search pictograms" }}
+                placeholder={t("add.placeholder")}
+                inputProps={{ "aria-label": t("add.searchLabel") }}
             />
-            <IconButton type="submit" sx={{ p: "10px" }} aria-label="Search">
+            <IconButton type="submit" sx={{ p: "10px" }} aria-label={t("add.search")}>
                 <SearchIcon />
             </IconButton>
         </Paper>
@@ -51,29 +54,48 @@ function SearchForm({ onSearch }) {
 // Lives inside the Dialog, which unmounts its children when closed, so the
 // query resets every time the dialog is reopened.
 function SearchContent({ onSelect }) {
+    const t = useT();
+    const { language } = useLanguage();
+    const locales = SEARCH_LOCALES[language];
     const [query, setQuery] = useState("");
-    const { loading, icons, error } = useArasaacSearch(query);
+    const { loading, icons, locale, error } = useArasaacSearch(query, locales);
+    const hint = t("add.hint");
 
     let results = null;
     if (loading) {
-        results = <CircularProgress sx={{ m: 2 }} aria-label="Searching" />;
+        results = <CircularProgress sx={{ m: 2 }} aria-label={t("add.searching")} />;
     } else if (error) {
-        results = <Typography color="error">Search failed: {error}</Typography>;
+        results = <Typography color="error">{t("add.failed", { error })}</Typography>;
     } else if (icons?.length === 0) {
-        results = <Typography>No pictograms found for “{query}”</Typography>;
+        results = <Typography>{t("add.none", { query })}</Typography>;
     } else if (icons) {
-        results = <IconSelector icons={icons} onSelectIcon={onSelect} />;
+        results = (
+            <>
+                {locales.length > 1 && (
+                    <Typography variant="caption" color="text.secondary" component="p" sx={{ mb: 0.5 }}>
+                        {t("add.resultsIn", { language: t(`language.${locale}`) })}
+                    </Typography>
+                )}
+                <IconSelector icons={icons} onSelectIcon={onSelect} />
+            </>
+        );
     }
 
     return (
         <>
             <SearchForm onSearch={setQuery} />
+            {hint && !icons && (
+                <Typography variant="body2" color="text.secondary" sx={{ mx: 2.5, mt: 1 }}>
+                    {hint}
+                </Typography>
+            )}
             <Box sx={{ p: 1, textAlign: "center" }}>{results}</Box>
         </>
     );
 }
 
 export default function PictoAdder({ onAdd }) {
+    const t = useT();
     const [open, setOpen] = useState(false);
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
@@ -85,7 +107,7 @@ export default function PictoAdder({ onAdd }) {
 
     return (
         <>
-            <Fab color="primary" aria-label="Add pictogram" onClick={() => setOpen(true)} sx={{ mt: 2 }}>
+            <Fab color="primary" aria-label={t("add.button")} onClick={() => setOpen(true)} sx={{ mt: 2 }}>
                 <AddIcon />
             </Fab>
             <Dialog
@@ -96,9 +118,9 @@ export default function PictoAdder({ onAdd }) {
                 maxWidth="sm"
             >
                 <DialogTitle sx={{ pr: 6 }}>
-                    Add a pictogram
+                    {t("add.title")}
                     <IconButton
-                        aria-label="Close"
+                        aria-label={t("add.close")}
                         onClick={() => setOpen(false)}
                         sx={{ position: "absolute", right: 8, top: 8 }}
                     >

@@ -1,41 +1,39 @@
 import { Divider, Link, Typography } from "@mui/material";
 import PictogramBase from "../components/PictogramBase";
+import { useT } from "../i18n/languageContext";
 import { AppVersion } from "../SiteMap";
 
 export default function About() {
+    const t = useT();
+
     return (
         <PictogramBase>
             <Typography variant="h4" component="h1" gutterBottom>
-                About Picto
+                {t("about.title")}
             </Typography>
-            <Typography paragraph>
-                Picto is a small web app for quickly making small sequences of
-                pictograms for visual guidance.
-            </Typography>
-            <Typography paragraph>
-                Intended for children (or adults) with (or without) special
-                needs.
-            </Typography>
+            <Typography sx={{ mb: 2 }}>{t("about.intro")}</Typography>
+            <Typography sx={{ mb: 2 }}>{t("about.audience")}</Typography>
             <Divider sx={{ my: 2 }} />
-            <Typography variant="body2" paragraph>
-                The pictographic symbols used are the property of the Government
-                of Aragón and have been created by Sergio Palao for{" "}
+            <Typography variant="body2" sx={{ mb: 2 }}>
+                {t("about.attribution.before")}
                 <Link href="https://arasaac.org" target="_blank" rel="noopener">
                     ARASAAC
                 </Link>
-                , which distributes them under a{" "}
+                {t("about.attribution.middle")}
                 <Link
                     href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
                     target="_blank"
                     rel="noopener"
                 >
-                    Creative Commons BY-NC-SA
-                </Link>{" "}
-                license.
+                    {t("about.attribution.license")}
+                </Link>
+                {t("about.attribution.after")}
             </Typography>
             <Divider sx={{ my: 2 }} />
-            <Typography paragraph>Created by Mikkel Gade</Typography>
-            <Typography color="text.secondary">Version {AppVersion}</Typography>
+            <Typography sx={{ mb: 2 }}>{t("about.createdBy")}</Typography>
+            <Typography color="text.secondary">
+                {t("about.version", { version: AppVersion })}
+            </Typography>
         </PictogramBase>
     );
 }

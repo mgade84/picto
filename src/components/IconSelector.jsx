@@ -1,6 +1,8 @@
 import { Box, Button, Paper } from "@mui/material";
+import { useT } from "../i18n/languageContext";
 
 export default function IconSelector({ icons, onSelectIcon }) {
+    const t = useT();
     return (
         <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "center", px: 1 }}>
             {icons.map(icon => (
@@ -8,7 +10,7 @@ export default function IconSelector({ icons, onSelectIcon }) {
                     <Button
                         onClick={() => onSelectIcon(icon)}
                         title={icon.text}
-                        aria-label={`Add ${icon.text}`}
+                        aria-label={t("add.icon", { text: icon.text })}
                     >
                         <Box
                             component="img"

@@ -1,9 +1,11 @@
 import { AppBar, IconButton, Toolbar, Typography } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useDrawerUpdate } from "../context/drawerContext";
+import { useT } from "../i18n/languageContext";
 import { AppName } from "../SiteMap";
 
 export default function TopBar() {
+    const t = useT();
     const setOpenDrawer = useDrawerUpdate();
 
     return (
@@ -12,7 +14,7 @@ export default function TopBar() {
                 <IconButton
                     edge="start"
                     color="inherit"
-                    aria-label="Open menu"
+                    aria-label={t("menu.open")}
                     sx={{ mr: 2 }}
                     onClick={() => setOpenDrawer(true)}
                 >

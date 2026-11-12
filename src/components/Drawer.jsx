@@ -14,6 +14,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import InfoIcon from "@mui/icons-material/Info";
 import { Link } from "react-router";
 import { useDrawer, useDrawerUpdate } from "../context/drawerContext";
+import { useT } from "../i18n/languageContext";
 import { AppName, Pages } from "../SiteMap";
 import logoUrl from "../logo.svg";
 
@@ -29,6 +30,7 @@ function MenuItem({ icon, text, to }) {
 }
 
 export default function Drawer() {
+    const t = useT();
     const isOpen = useDrawer();
     const setOpen = useDrawerUpdate();
 
@@ -69,14 +71,14 @@ export default function Drawer() {
                     <Divider />
                     <MenuItem
                         icon={<CollectionsIcon />}
-                        text="My Picto collection"
+                        text={t("menu.collections")}
                         to={Pages.home}
                     />
                 </List>
                 <Divider />
                 <List>
-                    <MenuItem icon={<SettingsIcon />} text="Settings" to={Pages.settings} />
-                    <MenuItem icon={<InfoIcon />} text="About" to={Pages.about} />
+                    <MenuItem icon={<SettingsIcon />} text={t("menu.settings")} to={Pages.settings} />
+                    <MenuItem icon={<InfoIcon />} text={t("menu.about")} to={Pages.about} />
                 </List>
             </Box>
         </SwipeableDrawer>

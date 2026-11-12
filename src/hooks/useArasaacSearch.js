@@ -28,31 +28,44 @@ async function search(q, locale, signal) {
     return results.map(r => toIcon(r, q));
 }
 
+// Tries each locale in turn and returns the first non-empty result.
+async function searchFirst(q, locales, signal) {
+    for (const locale of locales) {
+        const icons = await search(q, locale, signal);
+        if (icons.length > 0) return { icons, locale };
+    }
+    return { icons: [], locale: null };
+}
+
 /**
- * Searches ARASAAC pictograms. The API is public and CORS-enabled, so this
- * runs directly from the browser. `icons` is null when there is no query.
+ * Searches ARASAAC pictograms, trying `locales` in order until one has
+ * matches. The API is public and CORS-enabled, so this runs directly from
+ * the browser. `icons` is null when there is no query; `locale` is the
+ * locale the results came from.
  */
-export default function useArasaacSearch(query, locale = "en") {
+export default function useArasaacSearch(query, locales = ["en"]) {
     const q = query.trim();
-    const key = q ? `${locale}:${q}` : null;
+    const localeList = locales.join(",");
+    const key = q ? `${localeList}:${q}` : null;
     // Holds the outcome of the last finished request, tagged with its key so
     // loading state is derived rather than set synchronously in the effect.
-    const [result, setResult] = useState({ key: null, icons: null, error: null });
+    const [result, setResult] = useState({ key: null });
 
     useEffect(() => {
         if (!key) return;
         const controller = new AbortController();
-        search(q, locale, controller.signal)
-            .then(icons => setResult({ key, icons, error: null }))
+        searchFirst(q, localeList.split(","), controller.signal)
+            .then(({ icons, locale }) => setResult({ key, icons, locale, error: null }))
             .catch(e => {
                 if (e.name !== "AbortError") {
-                    setResult({ key, icons: null, error: e.message });
+                    setResult({ key, icons: null, locale: null, error: e.message });
                 }
             });
         return () => controller.abort();
-    }, [key, q, locale]);
+    }, [key, q, localeList]);
 
-    if (!key) return { loading: false, icons: null, error: null };
-    if (result.key !== key) return { loading: true, icons: null, error: null };
-    return { loading: false, icons: result.icons, error: result.error };
+    const empty = { icons: null, locale: null, error: null };
+    if (!key) return { loading: false, ...empty };
+    if (result.key !== key) return { loading: true, ...empty };
+    return { loading: false, icons: result.icons, locale: result.locale, error: result.error };
 }
