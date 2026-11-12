@@ -127,3 +127,7 @@ yarn-debug.log*
 yarn-error.log*
 
 .vscode
+
+# Playwright
+/test-results
+/playwright-report
