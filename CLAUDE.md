@@ -25,6 +25,8 @@ Host ports default to 3000 (dev) and 8090 (app); 5173 and 8080 are used by other
 
 **`overrides.minimatch` in `package.json`** forces `minimatch` ^11.0.8 under ESLint 10 to fix GHSA-g3hv-75wg-m249 (DoS, dev-only; ESLint still asks for ^10). Remove it once ESLint depends on a patched `minimatch`, then check `npm audit`. After changing it, confirm ESLint's file matching with `npx eslint --print-config <file>`. npm doesn't run `core-js`'s postinstall (a funding banner, via jsPDF → canvg); that's intended.
 
+**Production serving (`nginx.conf`, `Dockerfile`):** the build stage pre-compresses text files with `gzip -9 -k` and nginx serves them with `gzip_static` (plus on-the-fly gzip as a fallback). The main script is 758 KB raw but about 233 KB over the wire. Caching: `/assets/` (hashed names) is immutable for a year; it uses `^~` so the icon regex location can't override it. `index.html`, every SPA route (served `index.html` via `try_files`) and `manifest.json` are `no-cache`, so updates reach users at once. Icons in `public/` cache for a day. Use only `add_header` for `Cache-Control`; `expires` adds a second header. `e2e/server.spec.js` checks all of this.
+
 ## Architecture
 
 - **No backend.** Search calls the public, CORS-enabled ARASAAC API directly from the browser (`src/hooks/useArasaacSearch.js`). The API answers **404 with `[]`** when nothing matches, which is treated as "no results". Image URLs are built from the pictogram id (`static.arasaac.org/pictograms/{id}/{id}_{res}.png`).

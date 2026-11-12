@@ -80,6 +80,8 @@ The pictographic symbols used are the property of the Government of Aragón and 
 
 ## History
 
-- **0.1 (2020–2021):** Create React App with Material-UI v4. Icons came from the Flaticon API through a small Express server that held the API key and handed out bearer tokens. The Flaticon v2 API has since been replaced by the paid Freepik API.
-- **0.2 (2026):** Modernized to Vite, React 19, MUI 9 and React Router 8. Switched to ARASAAC, which needs no API key, so the Express server was removed and the app became fully static. Schedules saved by 0.1 still load.
-- **0.3 (2026):** Multiple named sequences, managed from *My Picto collections* (open, create, rename, delete). An existing single schedule is migrated into a sequence called "Min sekvens" (or "My sequence"). Danish/English interface (Danish by default), Norwegian-then-English search in Danish mode, and editable pictogram labels. Cards are reordered by drag and drop (mouse, touch and keyboard) and deleted by dropping them on a bin, with undo. A padlock in the top bar locks editing.
+- **0.1 (2020–2021):** Create React App with Material-UI v4. Icons came from the Flaticon API through a small Express server that held the API key. The Flaticon v2 API has since been replaced by the paid Freepik API.
+- **1.0 (2026):** A complete overhaul.
+  - **Stack:** rebuilt on Vite, React 19, MUI 9 and React Router 8. Pictograms come from ARASAAC (no key, so no server); the app is static, served by nginx with compression.
+  - **Features:** multiple sequences, a Danish/English interface, drag-and-drop editing with a bin and undo, an edit lock, printing and PDF (orientation, direction, wrapping, pages), photos from Wikimedia Commons, and own photos with crop and zoom.
+  - **Phone-first,** and tested on desktop, Android and iPhone. Schedules saved by 0.1 still load.

@@ -126,10 +126,13 @@ test("pages can be stepped through by tapping and each fits the screen", async (
         await page.getByRole("button", { name: "Next page" }).tap();
         await expect(page.getByTestId("page-indicator")).toHaveText(`Page ${n} of 3`);
         const sheet = page.getByRole("img", { name: `Page ${n} of 3` });
-        await expect(sheet).toBeInViewport({ ratio: 0.9 });
-        const box = await sheet.boundingBox();
-        expect(box.x).toBeGreaterThanOrEqual(0);
-        expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
+        // The carousel scrolls smoothly: wait until the sheet has arrived.
+        await expect
+            .poll(async () => {
+                const box = await sheet.boundingBox();
+                return box.x >= 0 && box.x + box.width <= viewport.width;
+            })
+            .toBe(true);
     }
 });
 

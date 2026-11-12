@@ -16,7 +16,11 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY . .
-RUN npm run build
+RUN npm run build \
+    # Pre-compress text files at maximum level; nginx serves the .gz copies
+    # directly (gzip_static) to clients that accept gzip.
+    && find dist -type f \( -name '*.js' -o -name '*.css' -o -name '*.html' -o -name '*.json' -o -name '*.svg' \) \
+        -size +1k -exec gzip -9 -k {} \;
 
 # --- Static runtime: the app is plain static files served by nginx ---
 FROM nginx:stable-alpine AS prod
