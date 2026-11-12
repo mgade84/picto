@@ -3,6 +3,7 @@ import {
     Button,
     FormControl,
     FormControlLabel,
+    FormHelperText,
     FormLabel,
     Radio,
     RadioGroup,
@@ -11,6 +12,7 @@ import {
 import ConfirmDialog from "../components/ConfirmDialog";
 import PictogramBase from "../components/PictogramBase";
 import { useCollections } from "../context/collectionsContext";
+import { BIN_SIDES, usePreferences } from "../context/preferencesContext";
 import { useLanguage, useT } from "../i18n/languageContext";
 import { LANGUAGES, translate } from "../i18n/strings";
 
@@ -19,7 +21,7 @@ function LanguagePicker() {
     const { language, setLanguage } = useLanguage();
 
     return (
-        <FormControl sx={{ mb: 3 }}>
+        <FormControl sx={{ mb: 3, display: "flex" }}>
             {/* Bilingual on purpose, so it can be found in either language. */}
             <FormLabel id="language-label">{t("settings.language")}</FormLabel>
             <RadioGroup
@@ -42,6 +44,36 @@ function LanguagePicker() {
     );
 }
 
+function BinSidePicker() {
+    const t = useT();
+    const { binSide, setPreference } = usePreferences();
+
+    return (
+        <FormControl sx={{ mb: 3, display: "flex" }}>
+            <FormLabel id="bin-side-label">{t("settings.binSide")}</FormLabel>
+            <RadioGroup
+                row
+                aria-labelledby="bin-side-label"
+                aria-describedby="bin-side-help"
+                value={binSide}
+                onChange={e => setPreference("binSide", e.target.value)}
+            >
+                {BIN_SIDES.map(side => (
+                    <FormControlLabel
+                        key={side}
+                        value={side}
+                        control={<Radio />}
+                        label={t(`settings.${side}`)}
+                    />
+                ))}
+            </RadioGroup>
+            <FormHelperText id="bin-side-help" sx={{ mx: 0 }}>
+                {t("settings.binSideHelp")}
+            </FormHelperText>
+        </FormControl>
+    );
+}
+
 export default function Settings() {
     const t = useT();
     const { collections, clearAll } = useCollections();
@@ -56,6 +88,7 @@ export default function Settings() {
             </Typography>
 
             <LanguagePicker />
+            <BinSidePicker />
 
             <Typography variant="h5" component="h2" gutterBottom>
                 {t("settings.danger")}

@@ -23,7 +23,7 @@ export default [
         },
     },
     {
-        files: ["*.config.js"],
+        files: ["*.config.js", "e2e/**"],
         languageOptions: { globals: globals.node },
     },
     {

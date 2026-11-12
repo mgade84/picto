@@ -15,6 +15,8 @@ export default defineConfig({
         watch: { usePolling: true },
     },
     test: {
+        // Unit tests only; e2e/ holds Playwright specs run by the e2e service.
+        include: ["src/**/*.test.{js,jsx}"],
         environment: "jsdom",
         setupFiles: ["./src/test/setup.js"],
         restoreMocks: true,

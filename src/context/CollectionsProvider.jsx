@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { arrayMove } from "@dnd-kit/sortable";
 import { v4 as uuid } from "uuid";
 import useLocalStorage from "../hooks/useLocalStorage";
 import { useT } from "../i18n/languageContext";
@@ -21,10 +22,6 @@ function loadInitial(migratedName) {
     return { collections: [] };
 }
 
-function swap([...arr], i, j) {
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-    return arr;
-}
 
 export default function CollectionsProvider({ children }) {
     const t = useT();
@@ -62,11 +59,19 @@ export default function CollectionsProvider({ children }) {
                 ),
             removePictogram: (id, pictoId) =>
                 updatePictograms(id, list => list.filter(p => p.id !== pictoId)),
-            movePictogram: (id, pictoId, delta) =>
+            /** Puts a pictogram back at `index` (used to undo a delete). */
+            insertPictogram: (id, pictogram, index) =>
+                updatePictograms(id, list => [
+                    ...list.slice(0, index),
+                    pictogram,
+                    ...list.slice(index),
+                ]),
+            /** Moves pictogram `fromId` to the position currently held by `toId`. */
+            reorderPictogram: (id, fromId, toId) =>
                 updatePictograms(id, list => {
-                    const i = list.findIndex(p => p.id === pictoId);
-                    const j = i + delta;
-                    return i < 0 || j < 0 || j >= list.length ? list : swap(list, i, j);
+                    const from = list.findIndex(p => p.id === fromId);
+                    const to = list.findIndex(p => p.id === toId);
+                    return from < 0 || to < 0 ? list : arrayMove(list, from, to);
                 }),
         };
     }, [setState]);

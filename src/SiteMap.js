@@ -6,10 +6,15 @@ export const AppVersion = __APP_VERSION__;
 export const Pages = {
     home: "/",
     sequence: "/sequence/:id",
+    print: "/sequence/:id/print",
     about: "/about",
     settings: "/settings",
 };
 
 export function sequencePath(id) {
     return `/sequence/${encodeURIComponent(id)}`;
+}
+
+export function printPath(id) {
+    return `${sequencePath(id)}/print`;
 }
