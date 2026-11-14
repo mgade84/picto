@@ -42,7 +42,7 @@ function PhotoCredits() {
 // What happens to the user's data. Keep this accurate: if the app starts
 // contacting another service or storing something new, update it (and the
 // e2e test that checks which hosts the app talks to).
-const PRIVACY_POINTS = ["onDevice", "noTracking", "searches", "printing", "deleting"];
+const PRIVACY_POINTS = ["onDevice", "noTracking", "searches", "printing", "sharing", "deleting"];
 
 function Privacy() {
     const t = useT();

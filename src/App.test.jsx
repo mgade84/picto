@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import App from "./App";
@@ -8,6 +8,7 @@ import { LANGUAGE_KEY } from "./i18n/languageContext";
 import { LOCK_KEY } from "./context/editLockContext";
 import { PREFERENCES_KEY } from "./context/preferencesContext";
 import { isLocal, loadImage } from "./images/imageStore";
+import { decodeSequence, encodeSequence } from "./transfer/link";
 
 // jsdom can't decode or draw images; the real processing is covered by e2e.
 vi.mock("./images/processImage", () => ({
@@ -895,5 +896,150 @@ describe("storage", () => {
         } finally {
             delete navigator.storage;
         }
+    });
+});
+
+describe("import and export", () => {
+    const pictoFile = (kind, collections, images = {}) =>
+        new File([JSON.stringify({ format: "picto", version: 1, kind, exported: "2026-11-01T10:00:00Z", collections, images })], "x.json", {
+            type: "application/json",
+        });
+    const ara = id => `https://static.arasaac.org/pictograms/${id}/${id}_500.png`;
+    const JPEG_B64 = btoa(String.fromCharCode(0xff, 0xd8, 0xff, 0xe0, 1, 2, 3));
+
+    it("imports a shared sequence from the list and opens it", async () => {
+        seed([MORNING]);
+        const user = userEvent.setup();
+        renderApp();
+
+        await user.upload(
+            screen.getByTestId("import-input"),
+            pictoFile("sequence", [
+                { name: "Morning", pictograms: [{ img: ara(1), text: "shoes" }, { img: "local:k", text: "our kitchen" }] },
+            ], { k: { type: "image/jpeg", data: JPEG_B64 } })
+        );
+        const dialog = await screen.findByRole("dialog", { name: "Import sequence" });
+        expect(within(dialog).getByTestId("import-summary")).toHaveTextContent("Sequences1Pictograms2Own images1");
+        expect(within(dialog).getByText("Made 1 November 2026")).toBeInTheDocument();
+        // A shared sequence can only be added, never replace everything.
+        expect(within(dialog).queryByRole("button", { name: "Replace everything" })).not.toBeInTheDocument();
+        await user.click(within(dialog).getByRole("button", { name: "Add" }));
+
+        // Opens the new sequence, renamed so it doesn't clash.
+        expect(await screen.findByRole("heading", { name: "Morning (2)" })).toBeInTheDocument();
+        expect(stored().map(c => c.name)).toEqual(["Morning", "Morning (2)"]);
+        const [shoes, kitchen] = stored()[1].pictograms;
+        expect(shoes).toMatchObject({ img: ara(1), text: "shoes" });
+        // The own image was stored under a new local id.
+        expect(isLocal(kitchen.img)).toBe(true);
+        expect(kitchen.img).not.toBe("local:k");
+        expect((await loadImage(kitchen.img)).size).toBe(7);
+    });
+
+    it("restores a backup by adding, or by replacing everything after a confirmation", async () => {
+        seed([MORNING, EVENING]);
+        const backup = pictoFile("backup", [
+            { name: "School", pictograms: [{ img: ara(3), text: "bag" }] },
+            { name: "Evening", pictograms: [{ img: ara(4), text: "bath" }] },
+        ]);
+        const user = userEvent.setup();
+        renderApp("/settings");
+
+        await user.upload(screen.getByTestId("import-input"), backup);
+        let dialog = await screen.findByRole("dialog", { name: "Restore backup" });
+        await user.click(within(dialog).getByRole("button", { name: "Add" }));
+        await waitFor(() => expect(stored().map(c => c.name)).toEqual(["Morning", "Evening", "School", "Evening (2)"]));
+        expect(await screen.findByText("2 sequences added.")).toBeInTheDocument();
+
+        await user.upload(screen.getByTestId("import-input"), backup);
+        dialog = await screen.findByRole("dialog", { name: "Restore backup" });
+        await user.click(within(dialog).getByRole("button", { name: "Replace everything" }));
+        const confirm = await screen.findByRole("dialog", { name: "Replace everything?" });
+        expect(confirm).toHaveTextContent("All your current sequences (4) are deleted and replaced by the backup.");
+        await user.click(within(confirm).getByRole("button", { name: "Replace everything" }));
+        await waitFor(() => expect(stored().map(c => c.name)).toEqual(["School", "Evening"]));
+    });
+
+    it("refuses a file that isn't a Picto file", async () => {
+        seed([MORNING]);
+        const user = userEvent.setup();
+        renderApp("/settings");
+        await user.upload(screen.getByTestId("import-input"), new File(["{}"], "other.json", { type: "application/json" }));
+        expect(await screen.findByText("This isn't a Picto file.")).toBeInTheDocument();
+        expect(stored()).toHaveLength(1);
+    });
+
+    it("hides importing while editing is locked, but still allows sharing", async () => {
+        seed([MORNING]);
+        localStorage.setItem("editLocked", "true");
+        renderApp();
+        expect(screen.queryByRole("button", { name: "Import" })).not.toBeInTheDocument();
+        renderApp("/sequence/m");
+        expect(screen.getAllByRole("button", { name: "Share sequence" }).length).toBeGreaterThan(0);
+    });
+
+    it("shares a sequence as a link that decodes back to it", async () => {
+        seed([{ id: "m", name: "Morning", pictograms: ["wake up", "eat", "school"].map((text, i) => ({ id: `p${i}`, img: ara(10 + i), text })) }]);
+        const user = userEvent.setup();
+        renderApp("/sequence/m");
+        await user.click(screen.getByRole("button", { name: "Share sequence" }));
+
+        const dialog = await screen.findByRole("dialog", { name: "Share “Morning”" });
+        expect(within(dialog).getByRole("button", { name: "Share as file" })).toBeEnabled();
+        const link = within(dialog).getByRole("textbox", { name: "Link to the sequence" }).value;
+        expect(link).toMatch(/^http:\/\/localhost(:\d+)?\/import#s=/);
+        const decoded = decodeSequence(new URL(link).hash);
+        expect(decoded.name).toBe("Morning");
+        expect(decoded.pictograms.map(p => p.text)).toEqual(["wake up", "eat", "school"]);
+    });
+
+    it("warns that a link to a long sequence may be cut, and shows a QR code", async () => {
+        seed([{ id: "long", name: "Long", pictograms: Array.from({ length: 101 }, (_, i) => ({ id: `p${i}`, img: ara(10 + i), text: `step ${i}` })) }]);
+        const user = userEvent.setup();
+        renderApp("/sequence/long");
+        await user.click(screen.getAllByRole("button", { name: "Share sequence" })[0]);
+        const dialog = await screen.findByRole("dialog");
+        expect(within(dialog).getByRole("textbox", { name: "Link to the sequence" })).toBeInTheDocument();
+        expect(dialog).toHaveTextContent("more than 100 pictograms, so the link is very long");
+
+        const qr = within(dialog).getByRole("button", { name: "QR code" });
+        expect(qr).toHaveAttribute("aria-expanded", "false");
+        await user.click(qr);
+        const img = await within(dialog).findByRole("img", { name: "QR code for the link" });
+        expect(img.getAttribute("src")).toMatch(/^data:image\/svg\+xml/);
+        expect(qr).toHaveAttribute("aria-expanded", "true");
+    }, 15000);
+
+    it("explains that sequences with own images can only be shared as a file", async () => {
+        seed([{ id: "o", name: "Own", pictograms: [picto("a", "kitchen"), { id: "b", img: "local:x", text: "room" }] }]);
+        const user = userEvent.setup();
+        renderApp("/sequence/o");
+        await user.click(screen.getByRole("button", { name: "Share sequence" }));
+        const dialog = await screen.findByRole("dialog");
+        expect(within(dialog).queryByRole("textbox", { name: "Link to the sequence" })).not.toBeInTheDocument();
+        expect(dialog).toHaveTextContent("can't be shared as a link");
+    });
+
+    it("adds a sequence from a shared link", async () => {
+        seed([MORNING]);
+        const hash = encodeSequence({ name: "Bedtime", pictograms: [{ img: ara(5), text: "pyjamas" }, { img: ara(6), text: "teeth" }] });
+        const user = userEvent.setup();
+        renderApp(`/import#${hash}`);
+
+        expect(screen.getByText("Add the sequence “Bedtime” with 2 pictograms?")).toBeInTheDocument();
+        await user.click(screen.getByRole("button", { name: "Add" }));
+        expect(await screen.findByRole("heading", { name: "Bedtime" })).toBeInTheDocument();
+        expect(stored()[1]).toMatchObject({ name: "Bedtime", pictograms: [{ text: "pyjamas" }, { text: "teeth" }] });
+    });
+
+    it("rejects a broken link and waits for unlocking", () => {
+        renderApp("/import#s=broken");
+        expect(screen.getByText("The link is invalid or damaged.")).toBeInTheDocument();
+        cleanup();
+
+        localStorage.setItem("editLocked", "true");
+        renderApp(`/import#${encodeSequence({ name: "B", pictograms: [{ img: ara(5), text: "x" }] })}`);
+        expect(screen.getByText("Editing is locked. Unlock it to add the sequence.")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Add" })).not.toBeInTheDocument();
     });
 });

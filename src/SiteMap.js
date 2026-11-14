@@ -7,6 +7,7 @@ export const Pages = {
     home: "/",
     sequence: "/sequence/:id",
     print: "/sequence/:id/print",
+    importLink: "/import",
     about: "/about",
     settings: "/settings",
 };

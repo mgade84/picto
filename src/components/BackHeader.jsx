@@ -8,16 +8,17 @@ import { Pages } from "../SiteMap";
  * "← Title" header used by every page opened from the collections list
  * (sequence and print preview), so the way back looks and works the same.
  */
-export default function BackHeader({ title, sx }) {
+export default function BackHeader({ title, actions, sx }) {
     const t = useT();
     return (
         <Box sx={{ display: "flex", alignItems: "center", minWidth: 0, ...sx }}>
             <IconButton component={RouterLink} to={Pages.home} aria-label={t("sequence.back")}>
                 <ArrowBackIcon />
             </IconButton>
-            <Typography variant="h5" component="h2" noWrap sx={{ ml: 1, minWidth: 0 }}>
+            <Typography variant="h5" component="h2" noWrap sx={{ ml: 1, minWidth: 0, flex: "1 1 auto" }}>
                 {title}
             </Typography>
+            {actions}
         </Box>
     );
 }

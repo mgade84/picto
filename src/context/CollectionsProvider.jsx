@@ -4,6 +4,7 @@ import { v4 as uuid } from "uuid";
 import useLocalStorage from "../hooks/useLocalStorage";
 import { deleteUnusedImages } from "../images/imageStore";
 import { useT } from "../i18n/languageContext";
+import { uniqueName } from "../transfer/format";
 import { CollectionsContext, LEGACY_KEY, STORAGE_KEY } from "./collectionsContext";
 
 // Runs only when STORAGE_KEY is empty: adopts a pre-collections schedule.
@@ -46,6 +47,25 @@ export default function CollectionsProvider({ children }) {
                 return id;
             },
             rename: (id, name) => updateOne(id, c => ({ ...c, name })),
+            /**
+             * Adds imported sequences ({ name, pictograms }) with fresh ids,
+             * renaming any that clash with existing names. With `replace`,
+             * all existing sequences are removed first. Returns the new ids.
+             */
+            importCollections(imported, { replace = false } = {}) {
+                const ids = imported.map(() => uuid());
+                updateAll(list => {
+                    const kept = replace ? [] : list;
+                    const taken = new Set(kept.map(c => c.name));
+                    const added = imported.map((c, i) => {
+                        const name = uniqueName(c.name, taken);
+                        taken.add(name);
+                        return { id: ids[i], name, pictograms: c.pictograms.map(p => ({ ...p, id: uuid() })) };
+                    });
+                    return [...kept, ...added];
+                });
+                return ids;
+            },
             remove: id => updateAll(list => list.filter(c => c.id !== id)),
             clearAll: () => updateAll(() => []),
 

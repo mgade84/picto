@@ -134,6 +134,64 @@ const da = {
     "storage.hint": "Alt gemmes kun i browseren på denne enhed.",
     "storage.saveFailed":
         "Ændringerne kunne ikke gemmes. Browserens lagerplads er fuld eller blokeret, så de forsvinder, når Picto lukkes.",
+    "backup.title": "Backup",
+    "backup.hint":
+        "Gem en backup-fil med alle sekvenser og dine egne billeder (ikke indstillinger), fx i Filer eller iCloud Drive. Med den kan du gendanne alt på en ny enhed.",
+    "backup.save": "Gem backup",
+    "backup.saving": "Gemmer…",
+    "backup.restore": "Gendan fra backup…",
+
+    "import.button": "Importér",
+    "import.title.backup": "Gendan backup",
+    "import.title.sequence": "Importér sekvens",
+    "import.made": "Lavet {date}",
+    "import.sequences": "Sekvenser",
+    "import.pictograms": "Piktogrammer",
+    "import.images": "Egne billeder",
+    "import.skipped": ({ n }) =>
+        `${n === 1 ? "1 piktogram springes" : `${n} piktogrammer springes`} over, fordi billedet mangler eller kommer fra en ukendt kilde.`,
+    "import.add": "Tilføj",
+    "import.addHint": "Tilføjes ved siden af dine nuværende sekvenser. Intet slettes.",
+    "import.replace": "Erstat alt",
+    "import.replaceTitle": "Erstat alt?",
+    "import.replaceMessage": ({ n }) =>
+        `${n === 1 ? "Din nuværende sekvens" : `Alle dine nuværende sekvenser (${n})`} slettes og erstattes af backuppen. Det kan ikke fortrydes.`,
+    "import.done": ({ n }) => (n === 1 ? "1 sekvens er tilføjet." : `${n} sekvenser er tilføjet.`),
+    "import.working": "Importerer…",
+    "import.error.notPicto": "Det er ikke en Picto-fil.",
+    "import.error.newerVersion": "Filen er lavet med en nyere version af Picto. Opdatér Picto og prøv igen.",
+    "import.error.tooBig": "Filen er for stor.",
+    "import.error.read": "Filen kunne ikke læses.",
+    "import.error.save": "Billederne kunne ikke gemmes på enheden.",
+
+    "share.button": "Del sekvens",
+    "share.title": "Del »{name}«",
+    "share.file": "Del som fil",
+    "share.fileHint": "Med alle billeder. Modtageren importerer filen i sin Picto.",
+    "share.working": "Laver fil…",
+    "share.link": "Del som link",
+    "share.linkHint":
+        "Modtageren åbner linket og tilføjer sekvensen. Linket indeholder selve sekvensen – den sendes ikke til nogen server.",
+    "share.linkLabel": "Link til sekvensen",
+    "share.copy": "Kopiér link",
+    "share.copied": "Linket er kopieret.",
+    "share.shareLink": "Del link",
+    "share.longLink":
+        "Sekvensen har over {max} piktogrammer, så linket er meget langt. Nogle beskedapps afkorter lange links – virker linket ikke hos modtageren, så del som fil i stedet.",
+    "share.qr": "QR-kode",
+    "share.qrAlt": "QR-kode til linket",
+    "share.qrHint": "Scan koden med kameraet på den anden telefon.",
+    "share.qrTooLong": "Linket er for langt til en QR-kode. Kopiér linket eller del som fil i stedet.",
+    "share.tooBigLink": "Sekvensen er for stor til et link. Del som fil i stedet.",
+    "share.noLink": "Sekvenser med egne billeder kan ikke deles som link, fordi billederne er for store. Del som fil i stedet.",
+
+    "link.title": "Tilføj sekvens",
+    "link.question": ({ name, n }) =>
+        `Vil du tilføje sekvensen »${name}« med ${n === 1 ? "1 piktogram" : `${n} piktogrammer`}?`,
+    "link.invalid": "Linket er ugyldigt eller beskadiget.",
+    "link.locked": "Redigering er låst. Lås op for at tilføje sekvensen.",
+    "link.cancel": "Annuller",
+
     "settings.danger": "Farezone",
     "settings.deleteAll": "Slet alle sekvenser ({n})",
     "settings.clear": "Ryd",
@@ -165,6 +223,9 @@ const da = {
         "Når du søger, sendes kun søgeordet til ARASAAC (piktogrammer) eller Wikimedia Commons (fotos), og billederne hentes fra deres servere. Som ved ethvert besøg på en hjemmeside kan de se enhedens IP-adresse. Intet om dine sekvenser eller dine egne billeder sendes med.",
     "privacy.printing.title": "Udskrift og PDF",
     "privacy.printing.text": "laves på enheden. En PDF deles kun, hvis du selv vælger at dele den.",
+    "privacy.sharing.title": "Backup og deling.",
+    "privacy.sharing.text":
+        "Backup-filer og delte sekvenser laves på enheden, og du bestemmer selv, hvor de gemmes eller sendes hen. Et delt link indeholder selve sekvensen efter »#«, som browsere aldrig sender til en server.",
     "privacy.deleting.title": "Sletning.",
     "privacy.deleting.text":
         "»Ryd« under Indstillinger sletter alle sekvenser. Sletter du webstedets data i browseren, forsvinder alt, også dine egne billeder.",
@@ -292,6 +353,64 @@ const en = {
     "storage.hint": "Everything is stored only in the browser on this device.",
     "storage.saveFailed":
         "Your changes couldn't be saved. The browser's storage is full or blocked, so they'll be lost when Picto is closed.",
+    "backup.title": "Backup",
+    "backup.hint":
+        "Save a backup file with all sequences and your own images (not settings), for example in Files or iCloud Drive. With it you can restore everything on a new device.",
+    "backup.save": "Save backup",
+    "backup.saving": "Saving…",
+    "backup.restore": "Restore from backup…",
+
+    "import.button": "Import",
+    "import.title.backup": "Restore backup",
+    "import.title.sequence": "Import sequence",
+    "import.made": "Made {date}",
+    "import.sequences": "Sequences",
+    "import.pictograms": "Pictograms",
+    "import.images": "Own images",
+    "import.skipped": ({ n }) =>
+        `${n === 1 ? "1 pictogram is" : `${n} pictograms are`} left out because the picture is missing or from an unknown source.`,
+    "import.add": "Add",
+    "import.addHint": "Added alongside your current sequences. Nothing is deleted.",
+    "import.replace": "Replace everything",
+    "import.replaceTitle": "Replace everything?",
+    "import.replaceMessage": ({ n }) =>
+        `${n === 1 ? "Your current sequence is" : `All your current sequences (${n}) are`} deleted and replaced by the backup. This can't be undone.`,
+    "import.done": ({ n }) => (n === 1 ? "1 sequence added." : `${n} sequences added.`),
+    "import.working": "Importing…",
+    "import.error.notPicto": "This isn't a Picto file.",
+    "import.error.newerVersion": "This file was made with a newer version of Picto. Update Picto and try again.",
+    "import.error.tooBig": "The file is too big.",
+    "import.error.read": "The file couldn't be read.",
+    "import.error.save": "The images couldn't be saved on this device.",
+
+    "share.button": "Share sequence",
+    "share.title": "Share “{name}”",
+    "share.file": "Share as file",
+    "share.fileHint": "With all pictures. The receiver imports the file in their Picto.",
+    "share.working": "Making file…",
+    "share.link": "Share as link",
+    "share.linkHint":
+        "The receiver opens the link and adds the sequence. The link contains the sequence itself – it isn't sent to any server.",
+    "share.linkLabel": "Link to the sequence",
+    "share.copy": "Copy link",
+    "share.copied": "Link copied.",
+    "share.shareLink": "Share link",
+    "share.longLink":
+        "The sequence has more than {max} pictograms, so the link is very long. Some messaging apps cut long links – if the link doesn't work for the receiver, share as a file instead.",
+    "share.qr": "QR code",
+    "share.qrAlt": "QR code for the link",
+    "share.qrHint": "Scan the code with the other phone's camera.",
+    "share.qrTooLong": "The link is too long for a QR code. Copy the link or share as a file instead.",
+    "share.tooBigLink": "The sequence is too big for a link. Share as a file instead.",
+    "share.noLink": "Sequences with own images can't be shared as a link, because the images are too big. Share as a file instead.",
+
+    "link.title": "Add sequence",
+    "link.question": ({ name, n }) =>
+        `Add the sequence “${name}” with ${n === 1 ? "1 pictogram" : `${n} pictograms`}?`,
+    "link.invalid": "The link is invalid or damaged.",
+    "link.locked": "Editing is locked. Unlock it to add the sequence.",
+    "link.cancel": "Cancel",
+
     "settings.danger": "Danger zone",
     "settings.deleteAll": "Delete all sequences ({n})",
     "settings.clear": "Clear",
@@ -323,6 +442,9 @@ const en = {
         "When you search, only the search word is sent to ARASAAC (pictograms) or Wikimedia Commons (photos), and the pictures are loaded from their servers. As with any visit to a website, they can see the device's IP address. Nothing about your sequences or your own images is sent.",
     "privacy.printing.title": "Printing and PDFs",
     "privacy.printing.text": "are made on the device. A PDF is only shared if you choose to share it.",
+    "privacy.sharing.title": "Backups and sharing.",
+    "privacy.sharing.text":
+        "Backup files and shared sequences are made on the device, and you decide where they're kept or sent. A shared link contains the sequence itself after the “#”, which browsers never send to a server.",
     "privacy.deleting.title": "Deleting.",
     "privacy.deleting.text":
         "“Clear” in Settings deletes all sequences. Clearing this site's data in the browser removes everything, including your own images.",

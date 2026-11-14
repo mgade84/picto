@@ -20,6 +20,7 @@ import PrintIcon from "@mui/icons-material/Print";
 import ViewListIcon from "@mui/icons-material/ViewList";
 import { Link, useNavigate } from "react-router";
 import ConfirmDialog from "../components/ConfirmDialog";
+import ImportButton from "../components/ImportButton";
 import NameDialog from "../components/NameDialog";
 import { nextSequenceName, useCollections } from "../context/collectionsContext";
 import { useEditLock } from "../context/editLockContext";
@@ -156,13 +157,13 @@ export default function CollectionList() {
             )}
 
             {!locked && (
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={() => openDialog("create")}
-                >
-                    {t("list.new")}
-                </Button>
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                    <Button variant="contained" startIcon={<AddIcon />} onClick={() => openDialog("create")}>
+                        {t("list.new")}
+                    </Button>
+                    {/* A shared sequence opens straight away; a backup stays on the list. */}
+                    <ImportButton variant="outlined" onImported={ids => ids.length === 1 && navigate(sequencePath(ids[0]))} />
+                </Box>
             )}
 
             <NameDialog

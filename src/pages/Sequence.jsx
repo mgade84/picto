@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { Button, Link, Snackbar, Stack, Typography } from "@mui/material";
+import { Button, IconButton, Link, Snackbar, Stack, Typography } from "@mui/material";
+import ShareIcon from "@mui/icons-material/Share";
 import { Link as RouterLink, useParams } from "react-router";
 import BackHeader from "../components/BackHeader";
+import ShareDialog from "../components/ShareDialog";
 import PictoAdder from "../components/PictoAdder";
 import PictogramBase from "../components/PictogramBase";
 import SortablePictograms from "../components/SortablePictograms";
@@ -28,6 +30,7 @@ export default function Sequence() {
     // after closing so the message doesn't blank out while it animates away.
     const [deleted, setDeleted] = useState(null);
     const closeSnackbar = () => setDeleted(d => d && { ...d, open: false });
+    const [sharing, setSharing] = useState(false);
 
     if (!sequence) {
         return (
@@ -54,7 +57,17 @@ export default function Sequence() {
 
     return (
         <Stack sx={{ alignItems: "center", pb: 4 }}>
-            <BackHeader title={sequence.name} sx={{ width: "100%", maxWidth: 600, px: 1, pt: 1 }} />
+            <BackHeader
+                title={sequence.name}
+                sx={{ width: "100%", maxWidth: 600, px: 1, pt: 1 }}
+                actions={
+                    // Sharing changes nothing here, so it's available when locked too.
+                    <IconButton aria-label={t("share.button")} onClick={() => setSharing(true)}>
+                        <ShareIcon />
+                    </IconButton>
+                }
+            />
+            <ShareDialog sequence={sequence} open={sharing} onClose={() => setSharing(false)} />
             {!locked && sequence.pictograms.length > 0 && (
                 <Typography
                     variant="body2"

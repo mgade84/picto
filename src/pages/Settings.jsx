@@ -1,6 +1,8 @@
 import { useState } from "react";
 import {
+    Box,
     Button,
+    CircularProgress,
     FormControl,
     FormControlLabel,
     FormHelperText,
@@ -11,7 +13,10 @@ import {
 } from "@mui/material";
 import ConfirmDialog from "../components/ConfirmDialog";
 import PictogramBase from "../components/PictogramBase";
+import ImportButton from "../components/ImportButton";
 import StorageInfo from "../components/StorageInfo";
+import { exportBackup } from "../transfer/transfer";
+import SaveAltIcon from "@mui/icons-material/SaveAlt";
 import { useCollections } from "../context/collectionsContext";
 import { BIN_SIDES, usePreferences } from "../context/preferencesContext";
 import { useLanguage, useT } from "../i18n/languageContext";
@@ -75,6 +80,43 @@ function BinSidePicker() {
     );
 }
 
+function BackupSection() {
+    const t = useT();
+    const { collections } = useCollections();
+    const [saving, setSaving] = useState(false);
+
+    const save = async () => {
+        setSaving(true);
+        try {
+            await exportBackup(collections);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <Box component="section" aria-labelledby="backup-heading" sx={{ mb: 3 }}>
+            <Typography id="backup-heading" variant="h5" component="h2" gutterBottom>
+                {t("backup.title")}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                {t("backup.hint")}
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                <Button
+                    variant="contained"
+                    startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <SaveAltIcon />}
+                    disabled={saving || collections.length === 0}
+                    onClick={save}
+                >
+                    {t(saving ? "backup.saving" : "backup.save")}
+                </Button>
+                <ImportButton variant="outlined" label={t("backup.restore")} />
+            </Box>
+        </Box>
+    );
+}
+
 export default function Settings() {
     const t = useT();
     const { collections, clearAll } = useCollections();
@@ -90,6 +132,8 @@ export default function Settings() {
 
             <LanguagePicker />
             <BinSidePicker />
+
+            <BackupSection />
 
             <Typography variant="h5" component="h2" gutterBottom>
                 {t("storage.title")}

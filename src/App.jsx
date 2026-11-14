@@ -9,6 +9,7 @@ import PreferencesProvider from "./context/PreferencesProvider";
 import LanguageProvider from "./i18n/LanguageProvider";
 import About from "./pages/About";
 import CollectionList from "./pages/CollectionList";
+import ImportLink from "./pages/ImportLink";
 import PrintSequence from "./pages/PrintSequence";
 import Sequence from "./pages/Sequence";
 import Settings from "./pages/Settings";
@@ -29,6 +30,7 @@ export default function App() {
                             <Route path={Pages.home} element={<CollectionList />} />
                             <Route path={Pages.sequence} element={<Sequence />} />
                             <Route path={Pages.print} element={<PrintSequence />} />
+                            <Route path={Pages.importLink} element={<ImportLink />} />
                             <Route path={Pages.settings} element={<Settings />} />
                             <Route path={Pages.about} element={<About />} />
                             <Route path="*" element={<CollectionList />} />

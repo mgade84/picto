@@ -1,4 +1,5 @@
 import { isLocal, loadImage as loadStoredImage } from "../images/imageStore";
+import { shareOrDownload } from "../share/shareFile";
 import { sheetLayout } from "./layout";
 
 const MM_TO_PT = 72 / 25.4;
@@ -128,29 +129,8 @@ export function pdfFileName(name) {
     return `${safe}.pdf`;
 }
 
-/**
- * Makes the PDF and hands it over: on phones and tablets through the share
- * sheet (save to Files, AirDrop, print, messages ...), elsewhere as a
- * download. Falls back to a download if sharing isn't allowed, e.g. when
- * iOS decides the tap is too long ago after generating. Returns "shared",
- * "saved" or "cancelled".
- */
+/** Makes the PDF and hands it over: share sheet on phones, download elsewhere. */
 export async function savePdf(sequence, options) {
     const doc = await makePdf(sequence, options);
-    const fileName = pdfFileName(sequence.name);
-    const touch = window.matchMedia?.("(pointer: coarse)").matches;
-    if (touch && navigator.canShare) {
-        const file = new File([doc.output("blob")], fileName, { type: "application/pdf" });
-        if (navigator.canShare({ files: [file] })) {
-            try {
-                await navigator.share({ files: [file], title: sequence.name });
-                return "shared";
-            } catch (e) {
-                if (e.name === "AbortError") return "cancelled";
-                // NotAllowedError and friends: fall through to a download.
-            }
-        }
-    }
-    doc.save(fileName);
-    return "saved";
+    return shareOrDownload(doc.output("blob"), pdfFileName(sequence.name), sequence.name);
 }
