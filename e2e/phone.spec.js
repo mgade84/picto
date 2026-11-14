@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { imageSize, landscapePhoto, openSeededSequence, storedTexts, stubCommons } from "./helpers";
+import { card, imageSize, landscapePhoto, openSeededSequence, storedTexts, stubCommons } from "./helpers";
 
 // Runs on the phone projects (iPhone SE (3rd gen) on WebKit, Pixel 7 on
 // Chromium): every screen must fit the width without sideways scrolling, and
@@ -49,6 +49,20 @@ test("every screen fits the phone's width", async ({ page }, testInfo) => {
     }
 });
 
+test("a pictogram card gives most of its room to the picture", async ({ page }) => {
+    await openSeededSequence(page);
+    const picture = page.getByRole("img", { name: "eat" });
+    const cardBox = await card(page, "eat").boundingBox();
+    const imgBox = await picture.boundingBox();
+    expect(imgBox.width).toBeGreaterThanOrEqual(cardBox.width - 16);
+    expect(imgBox.height / cardBox.height).toBeGreaterThan(0.8);
+    // Little room around the label, but it's still a full-size tap target.
+    const label = await page.getByRole("button", { name: "Edit label of eat" }).boundingBox();
+    expect(label.height).toBeGreaterThanOrEqual(44);
+    expect(label.y + label.height / 2).toBeGreaterThan(imgBox.y + imgBox.height);
+    expect(cardBox.y + cardBox.height - (imgBox.y + imgBox.height)).toBeLessThan(40);
+});
+
 test("buttons are big enough to tap", async ({ page }) => {
     await openSeededSequence(page);
     for (const path of ["/", "/sequence/s1", "/sequence/s1/print"]) {
@@ -66,14 +80,27 @@ test("buttons are big enough to tap", async ({ page }) => {
 
 test("search, add, relabel and lock by tapping", async ({ page }) => {
     await page.route("https://api.arasaac.org/**", route =>
-        route.fulfill({ json: [{ _id: 2517, keywords: [{ keyword: "cat" }] }] })
+        route.fulfill({
+            json: [2517, 2518, 2519, 2520, 2521, 2522].map((_id, i) => ({ _id, keywords: [{ keyword: i ? `cat ${i}` : "cat" }] })),
+        })
     );
     await openSeededSequence(page);
 
     await page.getByRole("button", { name: "Add pictogram" }).tap();
     await page.getByRole("textbox", { name: "Search pictograms" }).fill("cat");
     await page.getByRole("button", { name: "Search", exact: true }).tap();
-    await page.getByRole("button", { name: "Add cat" }).tap();
+    // Results are big square tiles, at least three to a row, within the screen.
+    const tiles = page.getByTestId("search-results").getByRole("button");
+    await expect(tiles).toHaveCount(6);
+    const boxes = await Promise.all([0, 1, 2].map(i => tiles.nth(i).boundingBox()));
+    expect(new Set(boxes.map(b => Math.round(b.y))).size, "three tiles in the first row").toBe(1);
+    for (const b of boxes) {
+        expect(b.width).toBeGreaterThanOrEqual(96);
+        expect(Math.abs(b.width - b.height)).toBeLessThan(2);
+    }
+    expect(boxes[2].x + boxes[2].width).toBeLessThanOrEqual(page.viewportSize().width);
+    await shot(page, "search-results", test.info());
+    await page.getByRole("button", { name: "Add cat", exact: true }).tap();
     await expect.poll(() => storedTexts(page)).toEqual(["wake up", "eat", "school", "cat"]);
 
     await page.getByRole("button", { name: "Edit label of cat" }).tap();

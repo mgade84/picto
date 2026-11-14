@@ -38,7 +38,7 @@ function SearchForm({ onSearch }) {
             component="form"
             role="search"
             onSubmit={handleSubmit}
-            sx={{ m: "5px 16px", p: "2px 4px", display: "flex", alignItems: "center" }}
+            sx={{ m: "4px 8px", p: "2px 4px", display: "flex", alignItems: "center" }}
         >
             <InputBase
                 autoFocus
@@ -87,11 +87,11 @@ function PictogramSearch({ onSelect }) {
         <>
             <SearchForm onSearch={setQuery} />
             {hint && !icons && (
-                <Typography variant="body2" color="text.secondary" sx={{ mx: 2.5, mt: 1 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mx: 1.5, mt: 1 }}>
                     {hint}
                 </Typography>
             )}
-            <Box sx={{ p: 1, textAlign: "center" }}>
+            <Box sx={{ px: 1, pt: 0.5, pb: 1, textAlign: "center" }}>
                 <Results
                     {...{ loading, error, icons, query, onSelect }}
                     caption={locales.length > 1 && locale && t("add.resultsIn", { language: t(`language.${locale}`) })}
@@ -110,11 +110,11 @@ function PhotoSearch({ onSelect }) {
         <>
             <SearchForm onSearch={setQuery} />
             {!icons && (
-                <Typography variant="body2" color="text.secondary" sx={{ mx: 2.5, mt: 1 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mx: 1.5, mt: 1 }}>
                     {t("add.photosHint")}
                 </Typography>
             )}
-            <Box sx={{ p: 1, textAlign: "center" }}>
+            <Box sx={{ px: 1, pt: 0.5, pb: 1, textAlign: "center" }}>
                 <Results {...{ loading, error, icons, query, onSelect }} />
             </Box>
         </>

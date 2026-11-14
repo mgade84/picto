@@ -1,26 +1,33 @@
-import { Box, Button, Paper } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import { useT } from "../i18n/languageContext";
 
+// Square tiles that fill the width (3 across on a small phone), with little
+// padding so the picture gets the room. Thumbnails are 300-330 px, so they
+// stay sharp at this size.
 export default function IconSelector({ icons, onSelectIcon }) {
     const t = useT();
     return (
-        <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "center", px: 1 }}>
+        <Box
+            data-testid="search-results"
+            sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 0.75 }}
+        >
             {icons.map(icon => (
-                <Paper sx={{ m: "6px" }} key={icon.id}>
-                    <Button
-                        onClick={() => onSelectIcon(icon)}
-                        title={icon.title ?? icon.text}
-                        aria-label={t("add.icon", { text: icon.title ?? icon.text })}
-                    >
-                        <Box
-                            component="img"
-                            src={icon.thumb}
-                            alt=""
-                            loading="lazy"
-                            sx={{ width: 64, height: 64, m: "5px", objectFit: "contain" }}
-                        />
-                    </Button>
-                </Paper>
+                <Button
+                    key={icon.id}
+                    variant="outlined"
+                    onClick={() => onSelectIcon(icon)}
+                    title={icon.title ?? icon.text}
+                    aria-label={t("add.icon", { text: icon.title ?? icon.text })}
+                    sx={{ p: 0.5, minWidth: 0, aspectRatio: "1", borderColor: "divider" }}
+                >
+                    <Box
+                        component="img"
+                        src={icon.thumb}
+                        alt=""
+                        loading="lazy"
+                        sx={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+                    />
+                </Button>
             ))}
         </Box>
     );

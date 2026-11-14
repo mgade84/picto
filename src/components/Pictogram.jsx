@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ButtonBase, CardMedia, InputBase, Paper, Typography } from "@mui/material";
+import { Box, ButtonBase, CardMedia, InputBase, Paper, Typography } from "@mui/material";
 import { useT } from "../i18n/languageContext";
 import useImageSrc from "../images/useImageSrc";
 
@@ -87,8 +87,9 @@ export default function Pictogram({ data, onRelabel, dragging, overlay, sx, ...c
             {...cardProps}
             sx={{
                 width: 200,
-                m: "10px",
-                p: 1.5,
+                m: "8px",
+                // Little padding, so the picture gets the room.
+                p: "6px 6px 0",
                 border: "2px solid",
                 cursor: overlay ? "grabbing" : "grab",
                 opacity: dragging ? 0.3 : 1,
@@ -106,9 +107,11 @@ export default function Pictogram({ data, onRelabel, dragging, overlay, sx, ...c
                 image={src}
                 alt={text}
                 draggable={false}
-                sx={{ height: 160, objectFit: "contain", pointerEvents: "none" }}
+                sx={{ height: 180, objectFit: "contain", pointerEvents: "none" }}
             />
-            <div style={{ textAlign: "center", marginTop: 4 }}>
+            {/* The label's tap target stays 44 px tall but overlaps the picture's
+                edge and the card's bottom border, so the text sits close to both. */}
+            <Box sx={{ position: "relative", textAlign: "center", mt: "-10px", mb: "-6px" }}>
                 {onRelabel ? (
                     <Label text={text} onRelabel={onRelabel} />
                 ) : (
@@ -116,7 +119,7 @@ export default function Pictogram({ data, onRelabel, dragging, overlay, sx, ...c
                         {text}
                     </Typography>
                 )}
-            </div>
+            </Box>
         </Paper>
     );
 }
